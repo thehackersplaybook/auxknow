@@ -34,7 +34,7 @@ AuxKnow addresses these pain points with its configurable architecture and robus
 
 ---
 
-## Motivation: Building the AI Platform for Bharat (India)
+## Motivation: Building the AI Platform for Bharat (India) 🇮🇳
 
 At _The Hackers Playbook_, our mission is to empower developers and organizations in India (Bharat) to build cutting-edge AI solutions. With the rapid growth of technology in India, there’s a need for accessible, high-quality tools that cater to local challenges while remaining globally relevant.
 
