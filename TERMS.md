@@ -16,9 +16,27 @@ For any use of AuxKnow in a **commercial** capacity, including but not limited t
 - Use in services that generate revenue directly or indirectly.
 - Embedding AuxKnow into any paid platforms, products, or services.
 
-You must obtain a **commercial license**. To acquire a license, please contact me at **contact.adityapatange@gmail.com**.
+You must obtain a **commercial license**. To acquire a license, please contact **Aditya Patange** at **contact.adityapatange@gmail.com**.
 
-## 4. Disclaimer of Liability
+## 4. Safe, Responsible, and Ethical Use
+
+AuxKnow must be used in a manner that is ethical, responsible, and respectful of others. By using AuxKnow, you agree to adhere to the following guidelines:
+
+1. **Prohibited Uses**:
+
+   - The software must not be used to create, distribute, or promote content that contains profanity, obscenity, hate speech, or any form of discriminatory language or behavior.
+   - AuxKnow must not be used to develop applications or services that engage in illegal activities, violate intellectual property rights, or infringe upon the rights of others.
+   - The software must not be used to propagate false information, spam, or any other malicious activities.
+
+2. **User Accountability**:
+
+   - Users are solely responsible for ensuring that their use of AuxKnow complies with all applicable laws and regulations in their jurisdiction.
+   - Users must ensure that the use of AuxKnow aligns with these terms and does not harm or exploit others in any capacity.
+
+3. **Reporting Violations**:
+   - Any violations of these guidelines or misuse of AuxKnow must be reported to **contact.adityapatange@gmail.com**.
+
+## 5. Disclaimer of Liability
 
 AuxKnow is provided "as is" without any guarantees, warranties, or conditions of any kind, express or implied, including but not limited to:
 
@@ -26,12 +44,15 @@ AuxKnow is provided "as is" without any guarantees, warranties, or conditions of
 - Fitness for a particular purpose.
 - Non-infringement.
 
-In no event shall I, Aditya Patange, be held liable for any claims, damages, or other liabilities arising out of or in connection with the use of AuxKnow, whether in an action of contract, tort, or otherwise.
+In no event shall I, **Aditya Patange**, be held liable for any claims, damages, or other liabilities arising out of or in connection with the use of AuxKnow, whether in an action of contract, tort, or otherwise.
 
-## 5. Acceptance of Terms
+## 6. Acceptance of Terms
 
 By using AuxKnow, you acknowledge that you have read, understood, and agree to these terms. If you do not agree with any of these terms, you may not use the software.
 
 ---
 
-For further inquiries or to report violations, please contact me at **contact.adityapatange@gmail.com**.
+For further inquiries, to acquire a license, or to report violations, please contact:
+
+**Aditya Patange**  
+**Email**: [contact.adityapatange@gmail.com](mailto:contact.adityapatange@gmail.com)
