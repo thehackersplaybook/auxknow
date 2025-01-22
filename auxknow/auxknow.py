@@ -2,19 +2,21 @@ from openai import OpenAI
 import os
 from pydantic import BaseModel
 from .printer import Printer
+from .constants import Constants
 from dotenv import load_dotenv
 from copy import deepcopy
 from typing import Generator, Optional, Union
-
-DEFAULT_ANSWER_LENGTH_PARAGRAPHS = 3
-DEFAULT_LINES_PER_PARAGRAPH = 5
-MAX_ANSWER_LENGTH_PARAGRAPHS = 8
-MAX_LINES_PER_PARAGRAPH = 10
-DEFAULT_PERPLEXITY_MODEL = "sonar-pro"
+from uuid import uuid4
 
 
 class AuxknowAnswer(BaseModel):
-    """AuxknowAnswer class to store the response from the Auxknow API."""
+    """AuxknowAnswer class to store the response from the Auxknow API.
+
+    Attributes:
+        is_final (bool): Indicates if the answer is final.
+        answer (str): The answer text.
+        citations (list[str]): List of citations for the answer.
+    """
 
     is_final: bool = False
     answer: str
@@ -22,14 +24,65 @@ class AuxknowAnswer(BaseModel):
 
 
 class AuxknowConfig(BaseModel):
+    """AuxknowConfig class to store the configuration for the Auxknow.
+
+    Attributes:
+        auto_model_routing (bool): Whether to automatically route queries to the appropriate model.
+        auto_query_restructuring (bool): Whether to automatically restructure queries.
+        answer_length_in_paragraphs (int): The length of the answer in paragraphs.
+        lines_per_paragraph (int): The number of lines per paragraph.
+    """
+
     auto_model_routing: bool = True
     auto_query_restructuring: bool = True
-    answer_length_in_paragraphs: int = DEFAULT_ANSWER_LENGTH_PARAGRAPHS
-    lines_per_paragraph: int = DEFAULT_LINES_PER_PARAGRAPH
+    answer_length_in_paragraphs: int = Constants.DEFAULT_ANSWER_LENGTH_PARAGRAPHS
+    lines_per_paragraph: int = Constants.DEFAULT_LINES_PER_PARAGRAPH
+
+
+class AuxknowSession(BaseModel):
+    """AuxknowSession class to manage a session with Auxknow.
+
+    Attributes:
+        session_id (str): The unique identifier for the session.
+        context (list[dict[str, str]]): The context of the session as a list of question-answer pairs.
+        auxknow (Auxknow): The Auxknow instance associated with the session.
+        closed (bool): Indicates if the session is closed.
+    """
+
+    session_id: str
+    context: list[dict[str, str]] = []
+    auxknow: "Auxknow"
+    closed: bool = False
+
+    def ask(
+        self, question: str, stream: bool = False
+    ) -> Union[AuxknowAnswer, Generator[AuxknowAnswer, None, None]]:
+        """Ask a question within this session to maintain context.
+
+        Args:
+            question (str): The question to ask.
+            stream (bool): Whether to stream the response.
+
+        Returns:
+            Union[AuxknowAnswer, Generator[AuxknowAnswer, None, None]]: The answer or a generator of answers.
+        """
+        if self.closed:
+            raise ValueError("Cannot ask a question on a closed session.")
+        return self.auxknow._ask_with_context(self, question, stream)
+
+    def close(self) -> None:
+        """Close the session."""
+        self.auxknow._close_session(self)
 
 
 class Auxknow:
-    """Auxknow a simpler Answer Engine built on top of Perplexity."""
+    """Auxknow a simpler Answer Engine built on top of Perplexity.
+
+    Attributes:
+        verbose (bool): Whether to enable verbose logging.
+        config (AuxknowConfig): The configuration for the Auxknow.
+        sessions (dict): A dictionary to store active sessions.
+    """
 
     def __init__(
         self,
@@ -37,7 +90,13 @@ class Auxknow:
         openai_api_key: Optional[str] = None,
         verbose: bool = False,
     ):
-        """Initialize the Auxknow instance."""
+        """Initialize the Auxknow instance.
+
+        Args:
+            api_key (Optional[str]): The API key for Perplexity.
+            openai_api_key (Optional[str]): The API key for OpenAI.
+            verbose (bool): Whether to enable verbose logging.
+        """
         self.verbose = verbose
         self.config = AuxknowConfig()
 
@@ -78,8 +137,17 @@ class Auxknow:
         if self.verbose:
             self._print_initialization_status()
 
+        self.sessions = {}
+
     def __restructure_query(self, query: str) -> str:
-        """Restructure the query so that it's fine-tuned enough to return a better quality answer."""
+        """Restructure the query so that it's fine-tuned enough to return a better quality answer.
+
+        Args:
+            query (str): The original query.
+
+        Returns:
+            str: The restructured query.
+        """
         try:
             prompt = f"""
             Query: '''{query}'''
@@ -110,7 +178,14 @@ class Auxknow:
             return query
 
     def __route_query_to_model(self, query: str) -> str:
-        """Route the query to the appropriate model based on the query."""
+        """Route the query to the appropriate model based on the query.
+
+        Args:
+            query (str): The original query.
+
+        Returns:
+            str: The model name to use for the query.
+        """
         try:
             prompt = f"""
             Query: '''{query}'''
@@ -155,7 +230,11 @@ class Auxknow:
             return "sonar"
 
     def __ping_test_llm(self) -> bool:
-        """Perform a ping test on the LLM API."""
+        """Perform a ping test on the LLM API.
+
+        Returns:
+            bool: True if the ping test is successful, False otherwise.
+        """
         try:
             response = self.llm.chat.completions.create(
                 messages=[
@@ -187,7 +266,11 @@ class Auxknow:
             return False
 
     def _ping_test(self) -> bool:
-        """Perform a ping test to check API connectivity."""
+        """Perform a ping test to check API connectivity.
+
+        Returns:
+            bool: True if the ping test is successful, False otherwise.
+        """
         try:
             response = self.client.chat.completions.create(
                 messages=[
@@ -229,7 +312,11 @@ class Auxknow:
             Printer.print_light_grey_message("🗣️  Verbose: ON.")
 
     def set_config(self, config: dict) -> None:
-        """Set the configuration for the Auxknow."""
+        """Set the configuration for the Auxknow.
+
+        Args:
+            config (dict): The configuration dictionary.
+        """
         answer_length_in_paragraphs = config.get("answer_length_in_paragraphs")
         auto_query_restructuring = config.get("auto_query_restructuring")
         auto_model_routing = config.get("auto_model_routing")
@@ -241,26 +328,35 @@ class Auxknow:
         if self.config.auto_model_routing != auto_model_routing:
             self.config.auto_model_routing = auto_model_routing
 
-        if self.config.answer_length_in_paragraphs > MAX_ANSWER_LENGTH_PARAGRAPHS:
+        if (
+            self.config.answer_length_in_paragraphs
+            > Constants.MAX_ANSWER_LENGTH_PARAGRAPHS
+        ):
             Printer.print_yellow_message(
-                f"Answer length in paragraphs exceeds the maximum limit of {MAX_ANSWER_LENGTH_PARAGRAPHS}. Defaulting to {DEFAULT_ANSWER_LENGTH_PARAGRAPHS}."
+                f"Answer length in paragraphs exceeds the maximum limit of {Constants.MAX_ANSWER_LENGTH_PARAGRAPHS}. Defaulting to {Constants.DEFAULT_ANSWER_LENGTH_PARAGRAPHS}."
             )
-            self.config.answer_length_in_paragraphs = DEFAULT_ANSWER_LENGTH_PARAGRAPHS
+            self.config.answer_length_in_paragraphs = (
+                Constants.DEFAULT_ANSWER_LENGTH_PARAGRAPHS
+            )
         elif answer_length_in_paragraphs:
             self.config.answer_length_in_paragraphs = answer_length_in_paragraphs
 
-        if self.config.lines_per_paragraph > MAX_LINES_PER_PARAGRAPH:
+        if self.config.lines_per_paragraph > Constants.MAX_LINES_PER_PARAGRAPH:
             Printer.print_yellow_message(
-                f"Lines per paragraph exceeds the maximum limit of {MAX_LINES_PER_PARAGRAPH}. Defaulting to {DEFAULT_LINES_PER_PARAGRAPH}."
+                f"Lines per paragraph exceeds the maximum limit of {Constants.MAX_LINES_PER_PARAGRAPH}. Defaulting to {Constants.DEFAULT_LINES_PER_PARAGRAPH}."
             )
-            self.config.lines_per_paragraph = DEFAULT_LINES_PER_PARAGRAPH
+            self.config.lines_per_paragraph = Constants.DEFAULT_LINES_PER_PARAGRAPH
         elif lines_per_paragraph:
             self.config.lines_per_paragraph = lines_per_paragraph
 
         self.config = config
 
     def get_config(self) -> AuxknowConfig:
-        """Get the configuration for the Auxknow."""
+        """Get the configuration for the Auxknow.
+
+        Returns:
+            AuxknowConfig: The current configuration.
+        """
         if not self.config:
             self.config = AuxknowConfig()
         return deepcopy(self.config)
@@ -268,12 +364,21 @@ class Auxknow:
     def ask(
         self, question: str, context: str = "", stream: bool = False
     ) -> Union[AuxknowAnswer, Generator[AuxknowAnswer, None, None]]:
-        """Ask a question to the Auxknow."""
+        """Ask a question to the Auxknow.
+
+        Args:
+            question (str): The question to ask.
+            context (str): The context for the question.
+            stream (bool): Whether to stream the response.
+
+        Returns:
+            Union[AuxknowAnswer, Generator[AuxknowAnswer, None, None]]: The answer or a generator of answers.
+        """
         try:
             if self.config.auto_query_restructuring:
                 question = self.__restructure_query(question)
 
-            model = DEFAULT_PERPLEXITY_MODEL
+            model = Constants.DEFAULT_PERPLEXITY_MODEL
             if self.config.auto_model_routing:
                 model = self.__route_query_to_model(question)
 
@@ -351,3 +456,70 @@ class Auxknow:
                 citations=[],
                 is_final=True,
             )
+
+    def create_session(self) -> AuxknowSession:
+        """Create a new session and return the session object.
+
+        Returns:
+            AuxknowSession: The created session.
+        """
+        session_id = str(uuid4())
+        session = AuxknowSession(session_id=session_id, auxknow=self)
+        self.sessions[session_id] = session
+        return session
+
+    def _close_session(self, session: AuxknowSession) -> None:
+        """Mark the session as closed.
+
+        Args:
+            session (AuxknowSession): The session to close.
+        """
+        session.closed = True
+        if session.session_id in self.sessions:
+            del self.sessions[session.session_id]
+
+    def _build_context_string(self, context: list[dict[str, str]]) -> str:
+        """Build the context string from the list of question-answer pairs.
+
+        Args:
+            context (list[dict[str, str]]): The list of question-answer pairs.
+
+        Returns:
+            str: The context string.
+        """
+        context_string = ""
+        for qa in context[-10:]:  # Take the last 10 question-answer pairs
+            qa_string = f"Q: {qa['question']}\nA: {qa['answer']}\n"
+            if (
+                len((context_string + qa_string).split())
+                <= Constants.MAX_CONTEXT_TOKENS
+            ):
+                context_string += qa_string
+            else:
+                break
+        return context_string
+
+    def _ask_with_context(
+        self, session: AuxknowSession, question: str, stream: bool = False
+    ) -> Union[AuxknowAnswer, Generator[AuxknowAnswer, None, None]]:
+        """Ask a question within a session to maintain context.
+
+        Args:
+            session (AuxknowSession): The session in which to ask the question.
+            question (str): The question to ask.
+            stream (bool): Whether to stream the response.
+
+        Returns:
+            Union[AuxknowAnswer, Generator[AuxknowAnswer, None, None]]: The answer or a generator of answers.
+        """
+        context_string = self._build_context_string(session.context)
+        answer = self.ask(question, context_string, stream)
+        if isinstance(answer, AuxknowAnswer):
+            session.context.append({"question": question, "answer": answer.answer})
+        else:
+            for partial_answer in answer:
+                session.context.append(
+                    {"question": question, "answer": partial_answer.answer}
+                )
+                yield partial_answer
+        return answer
