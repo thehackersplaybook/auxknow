@@ -12,3 +12,4 @@
     - [AuxKnowConfig](api-reference.md#auxknowconfig)
   - [Attributes](api-reference.md#attributes)
 - [Contributions](contributions.md)
+- [Terms of Use](terms-of-use.md)

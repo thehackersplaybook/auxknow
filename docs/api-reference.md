@@ -1,6 +1,6 @@
 # API Reference
 
-The API Reference provides a comprehensive guide to using the AuxKnow library effectively. Below is a detailed breakdown of its components, including classes, methods, and their functionalities.
+The API Reference provides a comprehensive guide to using AuxKnow effectively. Below is a detailed breakdown of its components, including classes, methods, and their functionalities.
 
 ---
 
@@ -10,9 +10,14 @@ AuxKnow is an Answer Engine designed to streamline querying, session management,
 
 Key features include:
 
-- Query restructuring for better results.
-- Model routing for optimized performance.
-- Session-based context handling.
+- Query restructuring.
+- Model routing.
+- Session-management.
+- Context-awareness.
+- Adjustable response length.
+- Source attribution via citations.
+
+For a detailed description of each feature, check out [Features](introduction.md#features) in the Introduction Section.
 
 ---
 
@@ -40,7 +45,8 @@ Sends a query to AuxKnow for an answer. Queries can optionally include additiona
 
 **Outputs:**
 
-- A complete answer object or an incremental stream of answer parts.
+- `response.answer`: A complete answer object or an incremental stream of answer parts.
+- `response.citations`: A complete list of all relevant citations.
 
 **Example Usage:**
 
@@ -60,7 +66,7 @@ Initiates a new session to group related queries and maintain context across mul
 
 **Example Usage:**
 
-```
+```python
 session = auxknow.create_session()
 response = session.ask("What is the speed of light?")
 print(response.answer)
@@ -85,7 +91,7 @@ Modify or retrieve the current settings for AuxKnow.
 
 **Example Usage:**
 
-```
+```python
 config = {
     "auto_query_restructuring": True,
     "auto_model_routing": False,
@@ -110,7 +116,7 @@ AuxKnow sessions allow you to manage context and group queries logically. Sessio
 
 #### Key Functionalities
 
-##### Querying within a Session (`ask`)
+##### Querying within a Session (`session.ask`)
 
 Send a query while maintaining the session’s context.
 
@@ -121,11 +127,13 @@ Send a query while maintaining the session’s context.
 
 **Outputs:**
 
-- A complete answer object or an incremental stream of answer parts.
+- `response.answer`: A complete answer object or an incremental stream of answer parts.
+- `response.citations`: A complete list of citations.
+- `response.is_final`: Indicates the final output which is the full answer and citations.
 
 **Example Usage:**
 
-```
+```python
 session = auxknow.create_session()
 response = session.ask("Explain the theory of relativity.")
 print(response.answer)
@@ -144,7 +152,7 @@ session.close()
 
 ---
 
-### Answer Object
+### AuxKnowAnswer: Answer Response
 
 Responses from AuxKnow are encapsulated in an answer object, providing structured access to the results.
 
@@ -169,7 +177,7 @@ print(response.citations)
 
 ---
 
-### Configuration Object
+### AuxKnowConfig: Configuration
 
 AuxKnow’s configuration object defines global settings for query behavior and output formatting.
 
@@ -212,4 +220,4 @@ print(config.auto_model_routing)
 
 - Access structured results with answers and citations for reliable outputs.
 
-AuxKnow is designed to be flexible and intuitive, empowering developers to create intelligent applications effortlessly.
+---

@@ -1,6 +1,6 @@
 # Getting Started
 
-This section will help you get started with the AuxKnow project.
+Get started with AuxNow in few simple, and easy steps.
 
 ---
 
@@ -22,7 +22,27 @@ To install the AuxKnow library, use pip:
 pip install auxknow
 ```
 
-After installation, you can immediately start using the library. Examples are provided below to demonstrate basic and streaming modes.
+After installation, you can immediately start using the library. Check out the Quickstart section below for a code example to begin with.
+
+## Quickstart
+
+Here's an example to quickly get started with AuxNow!
+
+```python
+from auxknow import AuxKnow
+
+# Initialize the AuxKnow instance
+auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
+
+# Ask a question
+response = auxknow.ask("What is the theory of evolution?")
+
+# Print the answer
+print("Answer:", response.answer)
+print("Citations:", response.citations)
+```
+
+---
 
 ---
 
@@ -59,26 +79,6 @@ To start the project:
 
 ```bash
 python main.py
-```
-
----
-
-## Quickstart
-
-Here's an example to quickly get started with AuxNow!
-
-```python
-from auxknow import AuxKnow
-
-# Initialize the AuxKnow instance
-auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
-
-# Ask a question
-response = auxknow.ask("What is the theory of evolution?")
-
-# Print the answer
-print("Answer:", response.answer)
-print("Citations:", response.citations)
 ```
 
 ---
