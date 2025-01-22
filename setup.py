@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name="perplexer",
+    name="auxknow",
     version="0.0.1",
     packages=find_packages(),
     install_requires=[
@@ -18,7 +18,7 @@ setup(
     ],
     author="Aditya Patange (AdiPat)",
     author_email="contact.adityapatange@gmail.com",
-    description="A simple, powerful and highly-configurable Answer Engine based on Perplexity Sonar!",
+    description="A simple, powerful and highly-configurable Answer Engine library based on Perplexity Sonar!",
     url="https://github.com/AdiPat/nuclear-news-py",
     classifiers=[
         "Programming Language :: Python :: 3",

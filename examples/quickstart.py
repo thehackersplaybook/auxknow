@@ -1,17 +1,17 @@
-from perplexer import Perplexer
+from auxknow import Auxknow
 from rich import print as rprint
 
 
 def main():
     """Run a simple Perplexer example."""
-    perplexer = Perplexer(verbose=True)
+    answer_engine = Auxknow(verbose=True)
     question = ""
 
     while question.strip().lower() != "q" or question.strip().lower() != "quit":
         question = input("💡 Enter a question for Perplexer (Press 'q' to exit): ")
         if question.strip().lower() == "q" or question.strip().lower() == "quit":
             break
-        response = perplexer.ask(question)
+        response = answer_engine.ask(question)
         answer = response.answer
         citations = response.citations
         rprint(f"[green]Answer:[/green] {answer}")

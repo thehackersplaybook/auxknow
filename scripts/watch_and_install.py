@@ -3,7 +3,7 @@ import subprocess
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-WATCH_FOLDER = "../perplexer"
+WATCH_FOLDER = "../auxknow"
 
 
 class ChangeHandler(FileSystemEventHandler):

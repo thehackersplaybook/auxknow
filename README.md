@@ -1,68 +1,102 @@
-# Perplexer 🛸
+# AuxKnow 🛸
 
-[![GitHub license](https://img.shields.io/badge/license-AGPLv3-blue)](#license)
-![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
+[![GitHub License](https://img.shields.io/badge/license-AGPLv3-blue)](#license)
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](#contributors)
 
-Perplexer is a powerful and highly configurable Answer Engine library based on Perplexity Sonar. With Perplexer, you can easily set up and build Answer Engines with just a simple command and a few lines of code. Check the **Usage Instructions** section for detailed guidance.
+AuxKnow is an advanced and fully customizable Answer Engine library, built to streamline the integration of intelligent answering capabilities into your applications. With AuxKnow, you can deploy feature-rich Answer Engines with minimal effort. For detailed guidance, refer to the **Usage Instructions** section below.
+
+---
 
 ## Background
 
-> **NOTE:** At The Hackers Playbook, we're developing an AI infrastructure and platform for India (Bharat). Perplexer is a step in that direction. We humbly encourage developers and organizations to develop on our platform and share feedback. 🚀
+At _The Hackers Playbook_, we are committed to building cutting-edge AI infrastructure and platforms to empower developers and organizations in India (Bharat) and beyond. AuxKnow represents a significant milestone in our mission to deliver robust, developer-friendly tools for crafting AI-driven solutions. We encourage you to explore, innovate, and share your insights to help us improve and evolve. 🚀
 
-Perplexer is a Python library designed to simplify the integration of 'Answer Engine' capabilities into products. One of the primary goals of Perplexer is to enable developers to create their own 'Answer Engine Experiences' without extensive coding to leverage Perplexity's models. While Perplexity provides low-level access to their models, significant application logic is still required to integrate Answer Engines effectively.
+AuxKnow leverages the capabilities of Perplexity’s Sonar models to enable seamless integration of "Answer Engine" functionality. While Perplexity’s models provide the foundational technology, AuxKnow bridges the gap by delivering a highly configurable and user-friendly library to accelerate application development.
 
-## Features
+---
 
-- ⚡️ **Configurable**: Easily configure Perplexer to meet your requirements. Perplexer allows you to fine-tune the Answer Engine to suit your unique project needs.
-- 🚦 **Dynamic Model Routing**: Route queries to the appropriate model based on the query's requirements. Perplexer selects the optimal model to deliver high-quality and fast responses.
-- 🗼 **Query Restructuring**: Perplexer restructures incoming queries to yield better quality responses. Queries are repurposed to better meet user requirements automatically.
-- 🧊 **Context-Aware Search**: Pass custom context or let Perplexer build its own context to ensure responses are grounded in a knowledge base. Perplexer enhances grounding by allowing you to supply your own context.
-- 🗂️ **Sessions**: Manage user interactions with Perplexer through session management features. Access session history, reset session details, and add custom session context to interactions. Export session history for further analysis.
-- 🚀 **Streaming**: Stream responses for a faster user experience. Streaming also supports live 'thinking' of the model as it generates a response.
-- 📚 **Citations**: Every answer comes with citations, thanks to Perplexity's Sonar models. The answers are search-grounded for better accuracy.
+## Key Features
 
-## Setup Instructions
+- **🚨 Fully Customizable**: Configure AuxKnow to align perfectly with your application’s requirements. Its flexibility ensures it can adapt to various use cases, from simple Q&A to complex contextual reasoning.
 
-To install Perplexer, simply run:
+- **🚑 Dynamic Query Routing**: Automatically route user queries to the most appropriate model, ensuring optimal performance and accuracy.
+
+- **🌐 Intelligent Query Restructuring**: AuxKnow restructures user queries to improve response quality, delivering more accurate and relevant answers.
+
+- **🔧 Contextual Search**: AuxKnow can either leverage predefined contexts or autonomously build its own context to ensure that answers remain grounded in relevant knowledge.
+
+- **🔐 Session Management**: Seamlessly manage user interactions, including access to session history, context updates, and session resets. Export session data for analytics and debugging.
+
+- **🚀 Streaming Responses**: Enable real-time, incremental response generation for an enhanced user experience.
+
+- **📚 Source Attribution**: Responses include detailed citations, ensuring transparency and reliability by grounding answers in trustworthy sources.
+
+---
+
+## Installation
+
+Install AuxKnow with a single command:
 
 ```bash
-pip install perplexer
+pip install auxknow
 ```
+
+---
 
 ## Usage Instructions
 
-Before you begin, add your `OPENAI_API_KEY` and `PERPLEXITY_API_KEY` in a `.env` file of your root folder where you run your script from.
+To begin using AuxKnow, ensure you have the required API keys (`OPENAI_API_KEY` and `PERPLEXITY_API_KEY`) configured in a `.env` file in your project’s root directory.
 
-Here is a basic example of how to use Perplexer:
+Here is an example of how to get started:
 
 ```python
-from perplexer import Perplexer
+from auxknow import AuxKnow
 
-engine = Perplexer()
+# Initialize the Answer Engine
+engine = AuxKnow()
+
+# Ask a question
 response = engine.ask("What is the capital of France?")
+
+# Print the response and its citations
 print(response.answer)
 print(response.citations)
 ```
 
+---
+
 ## Use Cases
 
-- 🤖 **Vertical AI Agents**: Develop specialized AI agents tailored to specific industries or domains like finance, healthcare, or developer experience.
-- 🧠 **Answering Capabilities**: Enhance applications with robust answering capabilities using Perplexity's advanced Sonar models.
-- 🎨 **Custom User Experiences**: Create unique user experiences by leveraging Perplexer's configurable features and session management.
-- 🛠️ **AI Platform**: Integrate Perplexer into your AI or LLM platform to deploy state-of-the-art capabilities for your customers.
+AuxKnow is designed to cater to a wide range of scenarios, including:
 
-## Contributors
+- **🤖 Vertical AI Agents**: Build domain-specific AI agents tailored to industries such as healthcare, education, finance, or technology.
 
-We welcome contributions from the community. Please check the [Contributing Guidelines](CONTRIBUTING.md) for more details.
+- **🧠 Advanced Q&A Systems**: Integrate robust answering capabilities into your applications, powered by state-of-the-art Sonar models.
+
+- **💡 Custom User Experiences**: Create personalized and immersive experiences with AuxKnow’s flexible configuration and session management features.
+
+- **🛠️ AI Infrastructure**: Enhance your AI or LLM platform with AuxKnow to deliver best-in-class answering capabilities to your users.
+
+---
+
+## Contributing
+
+We welcome contributions from developers around the globe. To get started, please review the [Contributing Guidelines](CONTRIBUTING.md) and submit your ideas, bug reports, or pull requests. Together, we can make AuxKnow even better.
+
+---
 
 ## License
 
-Perplexer is licensed under the AGPLv3 License. See the [LICENSE](LICENSE) file for more details.
+AuxKnow is distributed under the AGPLv3 License. Refer to the [LICENSE](LICENSE) file for full details. Key highlights include:
 
-- The code is open source and free for all non-commercial purposes like education and research.
-- For commercial and proprietary uses, contact us at `contact.adityapatange@gmail.com` for a commercial license.
+- Free for non-commercial purposes such as education and research.
+- For commercial or proprietary applications, contact us at `contact.adityapatange@gmail.com` to discuss licensing options.
+
+---
 
 ## Quote
 
-> "Knowledge is power." - Francis Bacon
+> "Knowledge is the foundation of progress." — The Hackers Playbook
+
+Elevate your applications with AuxKnow and join us in redefining the future of AI-driven solutions.

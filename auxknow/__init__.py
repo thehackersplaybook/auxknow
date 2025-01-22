@@ -1,6 +1,5 @@
 import warnings
-
-from .perplexer import Perplexer
+from .auxknow import Auxknow
 
 warnings.filterwarnings(
     "ignore",
@@ -10,4 +9,4 @@ warnings.filterwarnings(
 )
 
 __version__ = "0.0.1"
-__all__ = ["Perplexer"]
+__all__ = ["Auxknow"]
