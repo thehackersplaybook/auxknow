@@ -2,25 +2,44 @@
 
 This section provides instructions on how to use the AuxKnow project.
 
-## Basic Usage
+## Examples
 
-To begin using AuxKnow, ensure you have the required API keys (`OPENAI_API_KEY` and `PERPLEXITY_API_KEY`) configured in a `.env` file in your project’s root directory.
+### Basic Mode
 
-Here is an example of how to get started:
+The basic mode sends a query to AuxKnow and retrieves a response.
 
 ```python
 from auxknow import AuxKnow
 
-# Initialize the Answer Engine
-engine = AuxKnow()
+# Initialize the AuxKnow instance
+auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
 
 # Ask a question
-response = engine.ask("What is the meaning of life?")
+response = auxknow.ask("What is the theory of evolution?")
 
-# Print the response and its citations
-print(response.answer)
-print(response.citations)
+# Print the answer
+print("Answer:", response.answer)
+print("Citations:", response.citations)
 ```
+
+### Streaming Mode
+
+The streaming mode allows you to receive responses in real-time as they are generated.
+
+```python
+from auxknow import AuxKnow
+
+# Initialize the AuxKnow instance
+auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
+
+# Stream a response
+for partial_response in auxknow.ask("Explain quantum mechanics.", stream=True):
+    print(partial_response.answer, end="")
+```
+
+With these examples, you are ready to start exploring the AuxKnow library. Refer to the [API Reference](api-reference.md) for detailed method descriptions and additional options.
+
+---
 
 ## Advanced Usage
 
@@ -33,3 +52,5 @@ AuxKnow is designed to cater to a wide range of scenarios, including:
 - **💡 Custom User Experiences**: Create personalized and immersive experiences with AuxKnow’s flexible configuration and session management features.
 
 - **🛠️ AI Infrastructure**: Enhance your AI or LLM platform with AuxKnow to deliver best-in-class answering capabilities to your users.
+
+**NOTE:** Watch out for this section as we'll be adding examples for AuxKnow's advanced usage.

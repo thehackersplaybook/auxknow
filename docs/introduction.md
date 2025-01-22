@@ -2,17 +2,21 @@
 
 Welcome to the AuxKnow project documentation. This documentation will guide you through the various aspects of the project, including getting started, usage, API reference, and contribution guidelines.
 
-AuxKnow is an advanced and fully customizable Answer Engine library, built to streamline the integration of intelligent answering capabilities into your applications. With AuxKnow, you can deploy feature-rich Answer Engines with minimal effort. For detailed guidance, refer to the **Usage Instructions** section below.
+AuxKnow is an advanced and fully customizable Answer Engine library, built to streamline the integration of intelligent answering capabilities into your applications. With AuxKnow, you can deploy feature-rich Answer Engines with minimal effort. For detailed guidance, refer to the [Usage](usage.md) section of the documentation.
 
 ---
 
 ## Overview
 
-AuxKnow is a Python-based library designed to help developers seamlessly integrate intelligent answering capabilities into their applications. Powered by Perplexity’s Sonar models and OpenAI’s infrastructure, AuxKnow enables:
+AuxKnow is a powerful, Python-based library designed to help developers seamlessly integrate intelligent answering capabilities into their applications. Powered by Perplexity’s Sonar models and OpenAI’s infrastructure, AuxKnow enables:
 
-- **Query Restructuring**: Fine-tune queries for improved accuracy.
-- **Model Routing**: Automatically determine the most suitable model for complex or simple queries.
-- **Session Management**: Maintain context across multiple queries for coherent interactions.
+- **🚨 Fully Customizable**: Configure AuxKnow to align perfectly with your application’s requirements. Its flexibility ensures it can adapt to various use cases, from simple Q&A to complex contextual reasoning.
+- **🚑 Dynamic Query Routing**: Automatically route user queries to the most appropriate model, ensuring optimal performance and accuracy.
+- **🌐 Intelligent Query Restructuring**: Restructures user queries to improve response quality, delivering more accurate and relevant answers.
+- **🔧 Contextual Search**: Leverages predefined contexts or autonomously builds its own context to ensure answers remain grounded in relevant knowledge.
+- **🔐 Session Management**: Seamlessly manage user interactions, including access to session history, context updates, and session resets. Export session data for analytics and debugging.
+- **🚀 Streaming Responses**: Enable real-time, incremental response generation for an enhanced user experience.
+- **📚 Source Attribution**: Responses include detailed citations to ensure reliability and trustworthiness.
 
 AuxKnow delivers an easy-to-use, developer-friendly API to build feature-rich applications with minimal effort.
 
@@ -52,7 +56,26 @@ AuxKnow stands out due to its:
 2. **Ease of Integration**: Simple APIs and comprehensive documentation make it accessible to developers of all levels.
 3. **Advanced Features**: Leverages Perplexity’s Sonar models and OpenAI’s capabilities for state-of-the-art performance.
 4. **Efficiency**: Reduces development time by providing ready-to-use components and configurations.
-5. **Community-Driven Development**: Continuously evolving with feedback and contributions from the developer community.
+5. **Transparency**: Source attribution ensures reliable and verifiable answers.
+6. **Community-Driven Development**: Continuously evolving with feedback and contributions from the developer community.
+
+---
+
+## Key Features
+
+- **🚨 Fully Customizable**: Configure AuxKnow to align perfectly with your application’s requirements. Its flexibility ensures it can adapt to various use cases, from simple Q&A to complex contextual reasoning.
+
+- **🚑 Dynamic Query Routing**: Automatically route user queries to the most appropriate model, ensuring optimal performance and accuracy.
+
+- **🌐 Intelligent Query Restructuring**: AuxKnow restructures user queries to improve response quality, delivering more accurate and relevant answers.
+
+- **🔧 Contextual Search**: AuxKnow can either leverage predefined contexts or autonomously build its own context to ensure that answers remain grounded in relevant knowledge.
+
+- **🔐 Session Management**: Seamlessly manage user interactions, including access to session history, context updates, and session resets. Export session data for analytics and debugging.
+
+- **🚀 Streaming Responses**: Enable real-time, incremental response generation for an enhanced user experience.
+
+- **📚 Source Attribution**: Responses include detailed citations, ensuring transparency and reliability by grounding answers in trustworthy sources.
 
 ---
 

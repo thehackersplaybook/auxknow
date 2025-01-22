@@ -1,6 +1,6 @@
 # Summary
 
-- [Introduction](README.md)
+- [Introduction](introduction.md)
 - [Getting Started](getting-started.md)
 - [Usage](usage.md)
 - [API Reference](api-reference.md)

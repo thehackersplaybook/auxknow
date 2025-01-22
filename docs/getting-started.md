@@ -63,11 +63,9 @@ python main.py
 
 ---
 
-## Examples
+## Quickstart
 
-### Basic Mode
-
-The basic mode sends a query to AuxKnow and retrieves a response.
+Here's an example to quickly get started with AuxNow!
 
 ```python
 from auxknow import AuxKnow
@@ -83,21 +81,6 @@ print("Answer:", response.answer)
 print("Citations:", response.citations)
 ```
 
-### Streaming Mode
-
-The streaming mode allows you to receive responses in real-time as they are generated.
-
-```python
-from auxknow import AuxKnow
-
-# Initialize the AuxKnow instance
-auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
-
-# Stream a response
-for partial_response in auxknow.ask("Explain quantum mechanics.", stream=True):
-    print(partial_response.answer, end="")
-```
-
 ---
 
-With these examples, you are ready to start exploring the AuxKnow library. Refer to the [API Reference](api-reference.md) for detailed method descriptions and additional options.
+For more examples, check out [Usage](usage.md). Refer to the [API Reference](api-reference.md) for detailed method descriptions and additional options.
