@@ -3,7 +3,7 @@ from rich import print as rprint
 
 
 def main():
-    """Run a simple Perplexer example."""
+    """Basic use-case of AuxKnow, ask a question and get an answer."""
     answer_engine = Auxknow(verbose=True)
     question = ""
 
