@@ -88,10 +88,7 @@ We welcome contributions from developers around the globe. To get started, pleas
 
 ## License
 
-AuxKnow is distributed under the AGPLv3 License. Refer to the [LICENSE](LICENSE) file for full details. Key highlights include:
-
-- Free for non-commercial purposes such as education and research.
-- For commercial or proprietary applications, contact us at `contact.adityapatange@gmail.com` to discuss licensing options.
+AuxKnow is distributed under the AGPLv3 License. Refer to the [LICENSE](LICENSE) file for full details. Please also read the [Terms of Use](TERMS.md) and [Trademark](TRADEMARK.md).
 
 ---
 
