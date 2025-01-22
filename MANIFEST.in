@@ -1,0 +1,56 @@
+# Exclude byte-compiled / optimized / DLL files
+global-exclude __pycache__/
+global-exclude *.py[cod]
+global-exclude *$py.class
+
+# Exclude distribution / packaging files
+exclude build/
+exclude dist/
+exclude *.egg-info/
+exclude .eggs/
+exclude *.egg
+exclude MANIFEST
+
+# Exclude unit test / coverage reports
+exclude htmlcov/
+exclude .tox/
+exclude .nox/
+exclude .coverage
+exclude .coverage.*
+exclude .cache
+exclude nosetests.xml
+exclude coverage.xml
+exclude *.cover
+exclude *.py,cover
+exclude .hypothesis/
+exclude .pytest_cache/
+exclude cover/
+
+# Exclude environments
+exclude .env
+exclude .venv
+exclude env/
+exclude venv/
+exclude ENV/
+exclude env.bak/
+exclude venv.bak/
+
+# Exclude Jupyter Notebook checkpoints
+exclude .ipynb_checkpoints
+
+# Exclude IPython profiles
+exclude profile_default/
+exclude ipython_config.py
+
+# Exclude Pyre type checker files
+exclude .pyre/
+
+# Exclude pytype static type analyzer files
+exclude .pytype/
+
+# Exclude Cython debug symbols
+exclude cython_debug/
+
+# Exclude examples and scripts directories
+exclude examples/
+exclude scripts/

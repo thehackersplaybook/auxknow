@@ -1,0 +1,29 @@
+from setuptools import setup, find_packages
+
+
+setup(
+    name="perplexer",
+    version="0.0.1",
+    packages=find_packages(),
+    install_requires=[
+        "python-dotenv==1.0.1",
+        "pydantic==2.10.4",
+        "pydantic-settings==2.7.1",
+        "pydantic_core==2.27.2",
+        "firecrawl-py==1.8.0",
+        "markdownify==0.14.1",
+        "rich==13.9.4",
+        "openai==1.59.9",
+        "watchdog==6.0.0",
+    ],
+    author="Aditya Patange (AdiPat)",
+    author_email="contact.adityapatange@gmail.com",
+    description="A simple, powerful and highly-configurable Answer Engine based on Perplexity Sonar!",
+    url="https://github.com/AdiPat/nuclear-news-py",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: GNU Affero General Public License v3",
+        "Operating System :: OS Independent",
+    ],
+    python_requires=">=3.6",
+)

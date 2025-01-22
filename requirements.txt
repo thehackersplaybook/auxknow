@@ -1,0 +1,9 @@
+python-dotenv==1.0.1
+pydantic==2.10.4
+pydantic-settings==2.7.1
+pydantic_core==2.27.2
+firecrawl-py==1.8.0
+markdownify==0.14.1
+rich==13.9.4
+openai==1.59.9
+watchdog==6.0.0
