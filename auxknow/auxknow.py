@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from .printer import Printer
 from dotenv import load_dotenv
 from copy import deepcopy
+from typing import Generator, Optional, Union
 
 DEFAULT_ANSWER_LENGTH_PARAGRAPHS = 3
 DEFAULT_LINES_PER_PARAGRAPH = 5
@@ -15,6 +16,7 @@ DEFAULT_PERPLEXITY_MODEL = "sonar-pro"
 class AuxknowAnswer(BaseModel):
     """AuxknowAnswer class to store the response from the Auxknow API."""
 
+    is_final: bool = False
     answer: str
     citations: list[str]
 
@@ -29,7 +31,12 @@ class AuxknowConfig(BaseModel):
 class Auxknow:
     """Auxknow a simpler Answer Engine built on top of Perplexity."""
 
-    def __init__(self, api_key=None, openai_api_key=None, verbose=False):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        openai_api_key: Optional[str] = None,
+        verbose: bool = False,
+    ):
         """Initialize the Auxknow instance."""
         self.verbose = verbose
         self.config = AuxknowConfig()
@@ -147,7 +154,7 @@ class Auxknow:
             )
             return "sonar"
 
-    def __ping_test_llm(self):
+    def __ping_test_llm(self) -> bool:
         """Perform a ping test on the LLM API."""
         try:
             response = self.llm.chat.completions.create(
@@ -179,7 +186,7 @@ class Auxknow:
             )
             return False
 
-    def _ping_test(self):
+    def _ping_test(self) -> bool:
         """Perform a ping test to check API connectivity."""
         try:
             response = self.client.chat.completions.create(
@@ -213,7 +220,7 @@ class Auxknow:
             )
             return False
 
-    def _print_initialization_status(self):
+    def _print_initialization_status(self) -> None:
         """Print the initialization status."""
         if self.initialized:
             Printer.print_light_grey_message("🚀 Auxknow ping test passed.")
@@ -258,7 +265,9 @@ class Auxknow:
             self.config = AuxknowConfig()
         return deepcopy(self.config)
 
-    def ask(self, question: str, context: str = "") -> AuxknowAnswer:
+    def ask(
+        self, question: str, context: str = "", stream: bool = False
+    ) -> Union[AuxknowAnswer, Generator[AuxknowAnswer, None, None]]:
         """Ask a question to the Auxknow."""
         try:
             if self.config.auto_query_restructuring:
@@ -277,7 +286,11 @@ class Auxknow:
                 Printer.print_red_message(
                     "Auxknow API not initialized. Cannot ask questions."
                 )
-                return
+                return AuxknowAnswer(
+                    answer="Auxknow API not initialized. Cannot ask questions.",
+                    citations=[],
+                    is_final=True,
+                )
 
             system_prompt = """
                 You are Auxknow, an advanced Answer Engine that provides answers to the user's questions.
@@ -305,16 +318,36 @@ class Auxknow:
             if context and context.strip() != "":
                 messages.insert(1, {"role": "user", "content": f"Context: {context}"})
 
+            if stream:
+                response_stream = self.client.chat.completions.create(
+                    messages=messages, model=model, stream=True
+                )
+                full_answer = ""
+                citations = []
+                for response in response_stream:
+                    answer = response.choices[0].delta.content
+                    citations.extend(response.citations)
+                    citations = list(set(citations))
+                    full_answer += answer
+                    yield AuxknowAnswer(
+                        answer=answer, citations=citations, is_final=False
+                    )
+                yield AuxknowAnswer(
+                    answer=full_answer, citations=citations, is_final=True
+                )
+                return
+
             response = self.client.chat.completions.create(
                 messages=messages, model=model
             )
 
             answer = response.choices[0].message.content
             citations = response.citations
-            return AuxknowAnswer(answer=answer, citations=citations)
+            return AuxknowAnswer(answer=answer, citations=citations, is_final=True)
         except Exception as e:
             Printer.print_red_message(f"Error while asking question: {e}.")
             return AuxknowAnswer(
                 answer="Sorry, can't provide an answer right now. Please try again later!",
                 citations=[],
+                is_final=True,
             )
