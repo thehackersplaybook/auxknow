@@ -1,6 +1,10 @@
 # Introduction
 
-Welcome to the AuxKnow project documentation. This documentation will guide you through the various aspects of the project, including getting started, usage, API reference, and contribution guidelines.
+Welcome to the AuxKnow documentation. This documentation will guide you through the various aspects of AuxKnow, including getting started, usage, API reference, and contribution guidelines.
+
+<p align="center">
+  <img src="https://i.ibb.co/8mX2Cqm/cover-art.png" style="width: 80%; height: auto;">
+</p>
 
 AuxKnow is an advanced and fully customizable Answer Engine library, built to streamline the integration of intelligent answering capabilities into your applications. With AuxKnow, you can deploy feature-rich Answer Engines with minimal effort. For detailed guidance, refer to the [Usage](usage.md) section of the documentation.
 

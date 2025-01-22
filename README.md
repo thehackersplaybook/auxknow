@@ -4,6 +4,10 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](#contributors)
 
+<p align="center">
+  <img src="https://i.ibb.co/8mX2Cqm/cover-art.png" style="width: 80%; height: auto;">
+</p>
+
 AuxKnow is an advanced and fully customizable Answer Engine library, built to streamline the integration of intelligent answering capabilities into your applications. With AuxKnow, you can deploy feature-rich Answer Engines with minimal effort. For detailed guidance, refer to the **Usage Instructions** section below.
 
 ---
