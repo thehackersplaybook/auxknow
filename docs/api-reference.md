@@ -1,90 +1,264 @@
 # API Reference
 
-This section provides detailed information about the library's API available in the AuxKnow project.
+The API Reference provides a comprehensive guide to using the AuxKnow library effectively. Below is a detailed breakdown of its components, including classes, methods, and their functionalities.
+
+---
 
 ## Overview
 
-AuxKnow provides a set of classes and functions to interact with the Answer Engine. Below are the key components and their usage.
+AuxKnow is an Answer Engine built on top of Perplexity and OpenAI APIs. It provides a streamlined way to query, manage sessions, and configure settings for generating detailed and accurate answers.
+
+Key features include:
+
+- Query restructuring for better results.
+- Model routing for optimized performance.
+- Session-based context handling.
+
+---
 
 ## Classes
 
 ### AuxKnow
 
-#### `__init__`
+The main entry point for interacting with the AuxKnow API.
+
+#### Constructor: `__init__`
 
 ```python
 def __init__(self, api_key: Optional[str] = None, openai_api_key: Optional[str] = None, verbose: bool = False)
 ```
 
-- `api_key` (Optional[str]): The API key for Perplexity.
-- `openai_api_key` (Optional[str]): The API key for OpenAI.
-- `verbose` (bool): Whether to enable verbose logging.
+**Parameters:**
 
-#### `ask`
+- `api_key` _(Optional[str])_: The API key for Perplexity.
+- `openai_api_key` _(Optional[str])_: The API key for OpenAI.
+- `verbose` _(bool)_: Enables verbose logging for debugging.
+
+#### Key Methods:
+
+##### `ask`
 
 ```python
 def ask(self, question: str, context: str = "", stream: bool = False) -> Union[AuxKnowAnswer, Generator[AuxKnowAnswer, None, None]]
 ```
 
-- `question` (str): The question to ask.
-- `context` (str): The context for the question.
-- `stream` (bool): Whether to stream the response.
+Sends a query to AuxKnow for an answer.
 
-#### `create_session`
+**Parameters:**
+
+- `question` _(str)_: The query string.
+- `context` _(str)_: Additional context for the query (optional).
+- `stream` _(bool)_: Whether to stream the response (default: `False`).
+
+**Returns:**
+
+- A single `AuxKnowAnswer` object or a generator of streamed `AuxKnowAnswer` objects.
+
+**Example:**
+
+```python
+auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
+response = auxknow.ask("What is quantum computing?")
+print(response.answer)
+```
+
+##### `create_session`
 
 ```python
 def create_session(self) -> AuxKnowSession
 ```
 
-Creates a new session and returns the session object.
+Starts a new session to maintain context for related queries.
 
-#### `set_config`
+**Returns:**
+
+- An `AuxKnowSession` instance.
+
+**Example:**
+
+```python
+session = auxknow.create_session()
+response = session.ask("What is the speed of light?")
+print(response.answer)
+session.close()
+```
+
+##### `set_config`
 
 ```python
 def set_config(self, config: dict) -> None
 ```
 
-Sets the configuration for AuxKnow.
+Updates the configuration settings.
 
-#### `get_config`
+**Parameters:**
+
+- `config` _(dict)_: Configuration dictionary. Expected fields include:
+  - `auto_query_restructuring` _(bool)_: Whether to enable automatic query restructuring.
+  - `auto_model_routing` _(bool)_: Whether to enable automatic model routing.
+  - `answer_length_in_paragraphs` _(int)_: Number of paragraphs in the response.
+  - `lines_per_paragraph` _(int)_: Number of lines per paragraph in the response.
+
+**Example:**
+
+```python
+config = {
+    "auto_query_restructuring": True,
+    "auto_model_routing": False,
+    "answer_length_in_paragraphs": 3,
+    "lines_per_paragraph": 5
+}
+auxknow.set_config(config)
+```
+
+##### `get_config`
 
 ```python
 def get_config(self) -> AuxKnowConfig
 ```
 
-Gets the current configuration for AuxKnow.
+Retrieves the current configuration.
+
+**Returns:**
+
+- An `AuxKnowConfig` instance containing the current settings.
+
+**Example:**
+
+```python
+config = auxknow.get_config()
+print(config.auto_query_restructuring)
+```
+
+---
 
 ### AuxKnowSession
 
-#### `ask`
+A class to manage a session with AuxKnow, maintaining context across multiple queries.
+
+#### Attributes:
+
+- `session_id` _(str)_: Unique identifier for the session.
+- `context` _(list[dict])_: List of question-answer pairs.
+- `auxknow` _(AuxKnow)_: Associated AuxKnow instance.
+- `closed` _(bool)_: Indicates if the session is closed.
+
+#### Key Methods:
+
+##### `ask`
 
 ```python
 def ask(self, question: str, stream: bool = False) -> Union[AuxKnowAnswer, Generator[AuxKnowAnswer, None, None]]
 ```
 
-Asks a question within this session to maintain context.
+Sends a query within the session.
 
-#### `close`
+**Parameters:**
+
+- `question` _(str)_: The query string.
+- `stream` _(bool)_: Whether to stream the response (default: `False`).
+
+**Returns:**
+
+- A single `AuxKnowAnswer` object or a generator of streamed `AuxKnowAnswer` objects.
+
+**Example:**
+
+```python
+session = auxknow.create_session()
+response = session.ask("Explain the theory of relativity.")
+print(response.answer)
+session.close()
+```
+
+##### `close`
 
 ```python
 def close(self) -> None
 ```
 
-Closes the session.
+Closes the session, disallowing further queries.
+
+**Example:**
+
+```python
+session.close()
+```
+
+---
 
 ### AuxKnowAnswer
 
-A class to store the response from the AuxKnow API.
+A class to represent the response from AuxKnow.
 
-- `is_final` (bool): Indicates if the answer is final.
-- `answer` (str): The answer text.
-- `citations` (list[str]): List of citations for the answer.
+#### Attributes:
+
+- `is_final` _(bool)_: Indicates if the response is final.
+- `answer` _(str)_: The answer text.
+- `citations` _(list[str])_: References for the answer.
+
+**Example:**
+
+```python
+answer = AuxKnowAnswer(is_final=True, answer="Quantum computing is...")
+print(answer.answer)
+print(answer.citations)
+```
+
+---
 
 ### AuxKnowConfig
 
-A class to store the configuration for AuxKnow.
+A class to store and manage configuration settings for AuxKnow.
 
-- `auto_model_routing` (bool): Whether to automatically route queries to the appropriate model.
-- `auto_query_restructuring` (bool): Whether to automatically restructure queries.
-- `answer_length_in_paragraphs` (int): The length of the answer in paragraphs.
-- `lines_per_paragraph` (int): The number of lines per paragraph.
+#### Attributes:
+
+- `auto_model_routing` _(bool)_: Automatically route queries to the appropriate model.
+- `auto_query_restructuring` _(bool)_: Restructure queries for better results.
+- `answer_length_in_paragraphs` _(int)_: Number of paragraphs in the response.
+- `lines_per_paragraph` _(int)_: Number of lines per paragraph in the response.
+
+**Example:**
+
+```python
+config = AuxKnowConfig(
+    auto_model_routing=True,
+    auto_query_restructuring=True,
+    answer_length_in_paragraphs=3,
+    lines_per_paragraph=5
+)
+print(config.auto_model_routing)
+```
+
+---
+
+## Methods
+
+### AuxKnow Methods
+
+1. `ask`
+2. `create_session`
+3. `set_config`
+4. `get_config`
+
+### AuxKnowSession Methods
+
+1. `ask`
+2. `close`
+
+---
+
+## Attributes
+
+### Configuration Attributes (`AuxKnowConfig`)
+
+- `auto_model_routing` _(bool)_: Automatically route queries to the appropriate model.
+- `auto_query_restructuring` _(bool)_: Restructure queries for better results.
+- `answer_length_in_paragraphs` _(int)_: Specifies the length of the response in paragraphs.
+- `lines_per_paragraph` _(int)_: Specifies the number of lines per paragraph in the response.
+
+### Response Attributes (`AuxKnowAnswer`)
+
+- `is_final` _(bool)_: Indicates whether the response is the final output.
+- `answer` _(str)_: The main answer text.
+- `citations` _(list[str])_: List of citations or references supporting the answer.
