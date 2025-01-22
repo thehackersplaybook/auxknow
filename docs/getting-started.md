@@ -10,6 +10,14 @@ This section will help you get started with the AuxKnow project.
 
 ## Installation
 
+```bash
+pip install auxknow
+```
+
+Check `examples/quickstart.py` to get started.
+
+## Local Setup
+
 Clone the repository:
 
 ```bash
@@ -21,6 +29,12 @@ Install dependencies:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Install the package:
+
+```bash
+pip install .
 ```
 
 Run the project:

@@ -15,7 +15,7 @@ from auxknow import AuxKnow
 engine = AuxKnow()
 
 # Ask a question
-response = engine.ask("What is the capital of France?")
+response = engine.ask("What is the meaning of life?")
 
 # Print the response and its citations
 print(response.answer)
