@@ -1,11 +1,11 @@
 import sys
-from auxknow import Auxknow
+from auxknow import AuxKnow
 from rich import print as rprint
 
 
 def main():
     """AuxKnow example with streaming!"""
-    answer_engine = Auxknow(verbose=True)
+    answer_engine = AuxKnow(verbose=True)
     question = ""
 
     while question.strip().lower() != "q" or question.strip().lower() != "quit":

@@ -1,10 +1,10 @@
-from auxknow import Auxknow
+from auxknow import AuxKnow
 from rich import print as rprint
 
 
 def main():
     """Basic use-case of AuxKnow, ask a question and get an answer."""
-    answer_engine = Auxknow(verbose=True)
+    answer_engine = AuxKnow(verbose=True)
     question = ""
 
     while question.strip().lower() != "q" or question.strip().lower() != "quit":
