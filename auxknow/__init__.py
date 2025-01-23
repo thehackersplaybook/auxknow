@@ -1,5 +1,5 @@
 import warnings
-from .auxknow import AuxKnow
+from .auxknow import AuxKnow, AuxKnowConfig, AuxKnowAnswer, AuxKnowSession
 
 warnings.filterwarnings(
     "ignore",
@@ -9,4 +9,4 @@ warnings.filterwarnings(
 )
 
 __version__ = "0.0.1"
-__all__ = ["AuxKnow"]
+__all__ = ["AuxKnow", "AuxKnowConfig", "AuxKnowAnswer", "AuxKnowSession"]

@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="auxknow",
-    version="0.0.1",
+    version="0.0.3",
     packages=find_packages(),
     install_requires=[
         "python-dotenv==1.0.1",
@@ -18,12 +18,15 @@ setup(
     ],
     author="Aditya Patange (AdiPat)",
     author_email="contact.adityapatange@gmail.com",
-    description="A simple, powerful and highly-configurable Answer Engine library based on Perplexity Sonar!",
-    url="https://github.com/AdiPat/nuclear-news-py",
+    description="A simple, powerful and highly-configurable Answer Engine.",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    url="https://github.com/thehackersplaybook/auxknow",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.6",
+    license_files=('LICENSE',)
 )
