@@ -25,15 +25,15 @@
 
 </div>
 
-AuxKnow is an advanced, state-of-the-art, fully customizable Answer Engine library, built to streamline the integration of intelligent answering capabilities into your applications. With AuxKnow, you can deploy feature-rich Answer Engines with minimal effort. For detailed guidance, refer to the **Usage Instructions** section below.
+AuxKnow is an advanced, state-of-the-art, fully customizable Answer Engine library, built to streamline the integration of intelligent answering capabilities into your applications. With AuxKnow, you can deploy feature-rich Answer Engines with minimal effort. For detailed guidance, refer to the [**Usage Instructions**](https://the-hackers-playbook.gitbook.io/auxknow/usage) section in the documentation.
 
 ---
 
 ## Background
 
-At _The Hackers Playbook_, we are committed to building cutting-edge AI infrastructure and platforms to empower developers and organizations in India (Bharat) and beyond. AuxKnow represents a significant milestone in our mission to deliver robust, developer-friendly tools for crafting AI-driven solutions. We encourage you to explore, innovate, and share your insights to help us improve and evolve. 🚀
+At _The Hackers Playbook_, we are committed to building cutting-edge AI infrastructure and platforms grown out of Bharat (India). AuxKnow represents a significant milestone in our mission to deliver robust, developer-friendly tools for crafting AI-driven solutions. We encourage you to explore, innovate, and share your insights to help us improve and evolve. We look forward to your participation in our mission, since we are largely community driven and believe in Open Source culture.
 
-AuxKnow leverages the capabilities of Perplexity’s Sonar models to enable seamless integration of "Answer Engine" functionality. While Perplexity’s models provide the foundational technology, AuxKnow bridges the gap by delivering a highly configurable and user-friendly library to accelerate application development.
+AuxKnow leverages the capabilities of [Perplexity’s Sonar models](https://sonar.perplexity.ai/) to enable seamless integration of "Answer Engine" functionality. While Perplexity’s models provide the foundational technology, AuxKnow bridges the gap by delivering a highly configurable and user-friendly library to accelerate application development.
 
 ---
 
@@ -103,13 +103,13 @@ AuxKnow is designed to cater to a wide range of scenarios, including:
 
 ## Contributing
 
-We welcome contributions from developers around the globe. To get started, please review the [Contributing Guidelines](CONTRIBUTING.md) and submit your ideas, bug reports, or pull requests. Together, we can make AuxKnow even better.
+We welcome contributions from developers around the globe. To get started, please review the [Contributing Guidelines](https://the-hackers-playbook.gitbook.io/auxknow/contributions) and submit your ideas, bug reports, or pull requests. Together, we can make AuxKnow even better.
 
 ---
 
 ## License
 
-AuxKnow is distributed under the AGPLv3 License. Refer to the [LICENSE](LICENSE) file for full details. Please also read the [Terms of Use](TERMS.md) and [Trademark](TRADEMARK.md).
+AuxKnow is distributed under the AGPLv3 License. Refer to the [LICENSE](https://github.com/thehackersplaybook/auxknow/blob/main/LICENSE) file for full details. Please also read the [Terms of Use](https://the-hackers-playbook.gitbook.io/auxknow/terms-of-use) and [Trademark](https://github.com/thehackersplaybook/auxknow/blob/main/TRADEMARK.md).
 
 ---
 

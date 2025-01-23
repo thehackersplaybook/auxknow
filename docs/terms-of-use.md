@@ -34,9 +34,33 @@ AuxKnow must be used in a manner that is ethical, responsible, and respectful of
    - Users must ensure that the use of AuxKnow aligns with these terms and does not harm or exploit others in any capacity.
 
 3. **Reporting Violations**:
-   - Any violations of these guidelines or misuse of AuxKnow must be reported to **thehackersplaybook0@gmail.com**.
+   - Any violations of these guidelines or misuse of AuxKnow must be reported to **contact.adityapatange@gmail.com**.
 
-## 5. Disclaimer of Liability
+## 5. Modification of Terms
+
+We reserve the right to update, modify, or replace these Terms at our sole discretion. Any changes will be effective immediately upon posting the revised Terms on this website. We may notify you of significant changes via email or other communication channels. Your continued use of the Service after changes are made constitutes your acceptance of the updated Terms.
+
+## 6. Termination of Service
+
+We reserve the right to suspend or terminate your access to AuxKnow at any time, with or without notice, if you violate these Terms or for any other reason at our discretion. Upon termination, your right to use AuxKnow will immediately cease, and any data associated with your account may be deleted.
+
+## 7. Indemnity
+
+You agree to indemnify and hold AuxKnow and Aditya Patange, its affiliates, and their respective officers, directors, employees, and agents harmless from any claims, damages, losses, or expenses (including legal fees) arising from your use of the Service or your violation of these Terms.
+
+## 8. Severability
+
+If any provision of these Terms is found to be invalid or unenforceable, the remaining provisions shall remain in full force and effect.
+
+## 9. Compliance with AGPLv3 License
+
+AuxKnow is distributed under the terms of the [GNU Affero General Public License v3 (AGPLv3)](https://github.com/thehackersplaybook/auxknow/blob/main/LICENSE). By using AuxKnow, you agree to comply with the terms and conditions outlined in the AGPLv3 license.
+
+## 10. Respect for Trademark
+
+The AuxKnow trademark is protected and must be respected in accordance with the [Trademark Policy](https://github.com/thehackersplaybook/auxknow/blob/main/TRADEMARK.md). Unauthorized use of the trademark is prohibited.
+
+## 11. Disclaimer of Liability
 
 AuxKnow is provided "as is" without any guarantees, warranties, or conditions of any kind, express or implied, including but not limited to:
 
@@ -46,7 +70,7 @@ AuxKnow is provided "as is" without any guarantees, warranties, or conditions of
 
 In no event shall I, **Aditya Patange**, be held liable for any claims, damages, or other liabilities arising out of or in connection with the use of AuxKnow, whether in an action of contract, tort, or otherwise.
 
-## 6. Acceptance of Terms
+## 12. Acceptance of Terms
 
 By using AuxKnow, you acknowledge that you have read, understood, and agree to these terms. If you do not agree with any of these terms, you may not use the software.
 
@@ -56,3 +80,6 @@ For further inquiries, to acquire a license, or to report violations, please con
 
 **Aditya Patange**  
 **Email**: [contact.adityapatange@gmail.com](mailto:contact.adityapatange@gmail.com)
+
+**License**: [AGPLv3](https://github.com/thehackersplaybook/auxknow/blob/main/LICENSE)  
+**Trademark Policy**: [Trademark Policy](https://github.com/thehackersplaybook/auxknow/blob/main/TRADEMARK.md)
