@@ -1,14 +1,31 @@
 # AuxKnow 🛸
 
+<p align="center"><img src="https://i.ibb.co/8mX2Cqm/cover-art.png" width="230" alt="Khoj Logo"></p>
+
+<div align="center">
+
 [![GitHub License](https://img.shields.io/badge/license-AGPLv3-blue)](#license)
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](#contributors)
 
-<p align="center">
-  <img src="https://i.ibb.co/8mX2Cqm/cover-art.png" style="width: 80%; height: auto;">
-</p>
+</div>
 
-AuxKnow is an advanced and fully customizable Answer Engine library, built to streamline the integration of intelligent answering capabilities into your applications. With AuxKnow, you can deploy feature-rich Answer Engines with minimal effort. For detailed guidance, refer to the **Usage Instructions** section below.
+<div align="center">
+<b>Answer Engines, everywhere.</b>
+</div>
+
+<br />
+
+<div align="center">
+
+[💡 Docs](https://the-hackers-playbook.gitbook.io/auxknow)
+<span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+[🕸️ Web](https://auxknow.io)
+<span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+
+</div>
+
+AuxKnow is an advanced, state-of-the-art, fully customizable Answer Engine library, built to streamline the integration of intelligent answering capabilities into your applications. With AuxKnow, you can deploy feature-rich Answer Engines with minimal effort. For detailed guidance, refer to the **Usage Instructions** section below.
 
 ---
 
@@ -22,19 +39,19 @@ AuxKnow leverages the capabilities of Perplexity’s Sonar models to enable seam
 
 ## Key Features
 
-- **🚨 Fully Customizable**: Configure AuxKnow to align perfectly with your application’s requirements. Its flexibility ensures it can adapt to various use cases, from simple Q&A to complex contextual reasoning.
+- **Fully Customizable**: Configure AuxKnow to align perfectly with your application’s requirements. Its flexibility ensures it can adapt to various use cases, from simple Q&A to complex contextual reasoning.
 
-- **🚑 Dynamic Query Routing**: Automatically route user queries to the most appropriate model, ensuring optimal performance and accuracy.
+- **Dynamic Query Routing**: Automatically route user queries to the most appropriate model, ensuring optimal performance and accuracy.
 
-- **🌐 Intelligent Query Restructuring**: AuxKnow restructures user queries to improve response quality, delivering more accurate and relevant answers.
+- **Intelligent Query Restructuring**: AuxKnow restructures user queries to improve response quality, delivering more accurate and relevant answers.
 
-- **🔧 Contextual Search**: AuxKnow can either leverage predefined contexts or autonomously build its own context to ensure that answers remain grounded in relevant knowledge.
+- **Contextual Search**: AuxKnow can either leverage predefined contexts or autonomously build its own context to ensure that answers remain grounded in relevant knowledge.
 
-- **🔐 Session Management**: Seamlessly manage user interactions, including access to session history, context updates, and session resets. Export session data for analytics and debugging.
+- **Session Management**: Seamlessly manage user interactions, including access to session history, context updates, and session resets. Export session data for analytics and debugging.
 
-- **🚀 Streaming Responses**: Enable real-time, incremental response generation for an enhanced user experience.
+- **Streaming Responses**: Enable real-time, incremental response generation for an enhanced user experience.
 
-- **📚 Source Attribution**: Responses include detailed citations, ensuring transparency and reliability by grounding answers in trustworthy sources.
+- **Source Attribution**: Responses include detailed citations, ensuring transparency and reliability by grounding answers in trustworthy sources.
 
 ---
 
@@ -74,13 +91,13 @@ print(response.citations)
 
 AuxKnow is designed to cater to a wide range of scenarios, including:
 
-- **🤖 Vertical AI Agents**: Build domain-specific AI agents tailored to industries such as healthcare, education, finance, or technology.
+- **Vertical AI Agents**: Build domain-specific AI agents tailored to industries such as healthcare, education, finance, or technology.
 
-- **🧠 Advanced Q&A Systems**: Integrate robust answering capabilities into your applications, powered by state-of-the-art Sonar models.
+- **Advanced Q&A Systems**: Integrate robust answering capabilities into your applications, powered by state-of-the-art Sonar models.
 
-- **💡 Custom User Experiences**: Create personalized and immersive experiences with AuxKnow’s flexible configuration and session management features.
+- **Custom User Experiences**: Create personalized and immersive experiences with AuxKnow’s flexible configuration and session management features.
 
-- **🛠️ AI Infrastructure**: Enhance your AI or LLM platform with AuxKnow to deliver best-in-class answering capabilities to your users.
+- **AI Infrastructure**: Enhance your AI or LLM platform with AuxKnow to deliver best-in-class answering capabilities to your users.
 
 ---
 
@@ -100,4 +117,4 @@ AuxKnow is distributed under the AGPLv3 License. Refer to the [LICENSE](LICENSE)
 
 > "Knowledge is the foundation of progress." — The Hackers Playbook
 
-Elevate your applications with AuxKnow and join us in redefining the future of AI-driven solutions.
+Elevate your organization with AuxKnow and join us in redefining the future of AI-driven solutions.
