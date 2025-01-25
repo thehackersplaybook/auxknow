@@ -12,7 +12,7 @@ def main():
         question = input("💡 Enter a question for Perplexer (Press 'q' to exit): ")
         if question.strip().lower() == "q" or question.strip().lower() == "quit":
             break
-        response = answer_engine.ask(question, stream=True)
+        response = answer_engine.ask_stream(question)
 
         answer = "Answer: "
         citations = ""
