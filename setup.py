@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="auxknow",
-    version="0.0.3",
+    version="0.0.6",
     packages=find_packages(),
     install_requires=[
         "python-dotenv==1.0.1",
@@ -28,5 +28,5 @@ setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.6",
-    license_files=('LICENSE',)
+    license_files=("LICENSE",),
 )
