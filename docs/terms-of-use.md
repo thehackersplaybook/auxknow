@@ -81,5 +81,6 @@ For further inquiries, to acquire a license, or to report violations, please con
 **Aditya Patange**  
 **Email**: [contact.adityapatange@gmail.com](mailto:contact.adityapatange@gmail.com)
 
-**License**: [AGPLv3](https://github.com/thehackersplaybook/auxknow/blob/main/LICENSE)  
-**Trademark Policy**: [Trademark Policy](https://github.com/thehackersplaybook/auxknow/blob/main/TRADEMARK.md)
+**License**: [AGPLv3](LICENSE.md)
+
+**Trademark Policy**: [Trademark Policy](TRADEMARK.md)

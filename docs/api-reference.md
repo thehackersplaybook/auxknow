@@ -35,17 +35,16 @@ When initializing AuxKnow, you can optionally provide API keys for authenticatio
 
 ##### Querying (`ask`)
 
-Sends a query to AuxKnow for an answer. Queries can optionally include additional context or use streaming mode to receive answers incrementally.
+Sends a query to AuxKnow for an answer. Queries can optionally include additional context.
 
 **Inputs:**
 
 - `question`: The query string.
 - `context` (optional): Additional information to provide context.
-- `stream` (optional): Boolean to enable streaming responses.
 
 **Outputs:**
 
-- `response.answer`: A complete answer object or an incremental stream of answer parts.
+- `response.answer`: A complete answer object.
 - `response.citations`: A complete list of all relevant citations.
 
 **Example Usage:**
@@ -54,6 +53,27 @@ Sends a query to AuxKnow for an answer. Queries can optionally include additiona
 auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
 response = auxknow.ask("What is quantum computing?")
 print(response.answer)
+```
+
+##### Querying with Streaming (`ask_stream`)
+
+Sends a query to AuxKnow for an answer with streaming responses.
+
+**Inputs:**
+
+- `question`: The query string.
+- `context` (optional): Additional information to provide context.
+
+**Outputs:**
+
+- A generator yielding `AuxKnowAnswer` objects incrementally.
+
+**Example Usage:**
+
+```python
+auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
+for response in auxknow.ask_stream("What is quantum computing?"):
+    print(response.answer)
 ```
 
 ##### Session Management (`create_session`)
@@ -123,11 +143,10 @@ Send a query while maintaining the session’s context.
 **Inputs:**
 
 - `question`: The query string.
-- `stream` (optional): Boolean to enable streaming responses.
 
 **Outputs:**
 
-- `response.answer`: A complete answer object or an incremental stream of answer parts.
+- `response.answer`: A complete answer object.
 - `response.citations`: A complete list of citations.
 - `response.is_final`: Indicates the final output which is the full answer and citations.
 
@@ -137,6 +156,27 @@ Send a query while maintaining the session’s context.
 session = auxknow.create_session()
 response = session.ask("Explain the theory of relativity.")
 print(response.answer)
+session.close()
+```
+
+##### Querying with Streaming within a Session (`session.ask_stream`)
+
+Send a query while maintaining the session’s context with streaming responses.
+
+**Inputs:**
+
+- `question`: The query string.
+
+**Outputs:**
+
+- A generator yielding `AuxKnowAnswer` objects incrementally.
+
+**Example Usage:**
+
+```python
+session = auxknow.create_session()
+for response in session.ask_stream("Explain the theory of relativity."):
+    print(response.answer)
 session.close()
 ```
 

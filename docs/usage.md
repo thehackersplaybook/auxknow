@@ -33,7 +33,7 @@ from auxknow import AuxKnow
 auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
 
 # Stream a response
-for partial_response in auxknow.ask("Explain quantum mechanics.", stream=True):
+for partial_response in auxknow.ask_stream("Explain quantum mechanics."):
     print(partial_response.answer, end="")
 ```
 

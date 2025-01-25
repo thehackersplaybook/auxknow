@@ -13,3 +13,5 @@
   - [Attributes](api-reference.md#attributes)
 - [Contributions](contributions.md)
 - [Terms of Use](terms-of-use.md)
+- [License](LICENSE.md)
+- [Trademark](TRADEMARK.md)
