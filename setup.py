@@ -1,5 +1,7 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
 
 setup(
     name="auxknow",
@@ -19,7 +21,7 @@ setup(
     author="Aditya Patange (AdiPat)",
     author_email="contact.adityapatange@gmail.com",
     description="A simple, powerful and highly-configurable Answer Engine.",
-    long_description=open("README.md").read(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/thehackersplaybook/auxknow",
     classifiers=[
