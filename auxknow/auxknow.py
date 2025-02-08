@@ -423,6 +423,9 @@ class AuxKnow:
                 Respond in {self.config.answer_length_in_paragraphs} paragraphs with {self.config.lines_per_paragraph} lines per paragraph.
             """
 
+            if context and context.strip() != "":
+                user_prompt += f"\nContext: {context}"
+
             messages = [
                 {
                     "role": "system",
@@ -430,9 +433,6 @@ class AuxKnow:
                 },
                 {"role": "user", "content": user_prompt},
             ]
-
-            if context and context.strip() != "":
-                messages.insert(1, {"role": "user", "content": f"Context: {context}"})
 
             response = self.client.chat.completions.create(
                 messages=messages, model=model, stream=False
