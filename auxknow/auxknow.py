@@ -1,6 +1,6 @@
 from openai import OpenAI
 import os
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from .printer import Printer
 from .constants import (
     DEFAULT_ANSWER_LENGTH_PARAGRAPHS,
@@ -49,7 +49,7 @@ class AuxKnowConfig(BaseModel):
 class AuxKnowSession(BaseModel):
     """AuxKnowSession class to manage a session with AuxKnow.
 
-    Attributes:
+    Attributes: 
         session_id (str): The unique identifier for the session.
         context (list[dict[str, str]]): The context of the session as a list of question-answer pairs.
         auxknow (AuxKnow): The AuxKnow instance associated with the session.
@@ -60,6 +60,8 @@ class AuxKnowSession(BaseModel):
     context: list[dict[str, str]] = []
     auxknow: "AuxKnow"
     closed: bool = False
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def ask(self, question: str) -> AuxKnowAnswer:
         """Ask a question within this session to maintain context.
