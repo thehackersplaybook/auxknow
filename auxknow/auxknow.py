@@ -124,7 +124,8 @@ class AuxKnow:
 
         if self.verbose:
             Printer.print_light_grey_message("🌴 Loading environment variables... ")
-        load_dotenv(override=True, dotenv_path=".env")
+
+        self.__load_environment_variables()
 
         perplexity_api_key = api_key or os.getenv("PERPLEXITY_API_KEY")
         self.initialized = False
@@ -157,6 +158,23 @@ class AuxKnow:
             self._print_initialization_status()
 
         self.sessions = {}
+
+    def __load_environment_variables(self) -> None:
+        """Load the environment variables."""
+        cwd_path = os.getcwd()
+        env_path = os.path.join(cwd_path, ".env")
+
+        if self.verbose:
+            Printer.print_light_grey_message(
+                f"🌴 Loading environment variables from {env_path}..."
+            )
+
+        dotenv_loaded = load_dotenv(override=True, dotenv_path=env_path)
+
+        if dotenv_loaded and self.verbose:
+            Printer.print_green_message("🌴 Environment variables loaded.")
+        elif not dotenv_loaded and self.verbose:
+            Printer.print_red_message("🌴 Environment variables not loaded.")
 
     def __restructure_query(self, query: str) -> str:
         """Restructure the query so that it's fine-tuned enough to return a better quality answer.
