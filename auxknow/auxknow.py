@@ -49,7 +49,7 @@ class AuxKnowConfig(BaseModel):
 class AuxKnowSession(BaseModel):
     """AuxKnowSession class to manage a session with AuxKnow.
 
-    Attributes: 
+    Attributes:
         session_id (str): The unique identifier for the session.
         context (list[dict[str, str]]): The context of the session as a list of question-answer pairs.
         auxknow (AuxKnow): The AuxKnow instance associated with the session.
@@ -124,7 +124,7 @@ class AuxKnow:
 
         if self.verbose:
             Printer.print_light_grey_message("🌴 Loading environment variables... ")
-            load_dotenv(override=True, dotenv_path=".env")
+        load_dotenv(override=True, dotenv_path=".env")
 
         perplexity_api_key = api_key or os.getenv("PERPLEXITY_API_KEY")
         self.initialized = False
