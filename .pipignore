@@ -62,3 +62,4 @@ cython_debug/
 
 examples
 scripts
+publish.sh
