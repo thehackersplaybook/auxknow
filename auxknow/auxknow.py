@@ -558,7 +558,7 @@ class AuxKnow:
                 - If the user asks for personal information, do not provide it.
                 - Your job is to answer anything that the user asks as long as it is safe, compliant and ethical. 
                 - If you don't know the answer, say 'AuxKnow doesn't know bruh.'.
-                - Do not include any <think> blocks in your response.
+                - Don't provide responses titled with "Paragraph 1", "Paragraph 2", if you want to put titles, put appropriate titles.
             """
 
             user_prompt = f"""
@@ -659,6 +659,7 @@ class AuxKnow:
                 - If the user asks for personal information, do not provide it.
                 - Your job is to answer anything that the user asks as long as it is safe, compliant and ethical. 
                 - If you don't know the answer, say 'AuxKnow doesn't know bruh.'.
+                - Don't provide responses titled with "Paragraph 1", "Paragraph 2", if you want to put titles, put appropriate titles.
 
                 If a supporting prompt is provided, use that as additional information to understand patterns in your training data and provide a good response.
             """
