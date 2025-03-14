@@ -49,7 +49,7 @@ Sends a query to AuxKnow for an answer. Queries can optionally include additiona
 
 **Example Usage:**
 
-```
+```python
 auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
 response = auxknow.ask("What is quantum computing?")
 print(response.answer)
@@ -59,7 +59,7 @@ print(response.answer)
 
 Simply set `auto_prompt_augment` to `True` or do the same in the `set_config` method to enable automatic prompt augmentation.
 
-```
+```python
 auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key", auto_prompt_augment=True)
 response = auxknow.ask("What is quantum computing?")
 print(response.answer)
