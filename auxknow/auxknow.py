@@ -509,11 +509,11 @@ class AuxKnow:
         """
         citations = []
         try:
-            if response.citations:
-                citations = response.citations
+            if hasattr(response, "citations") and response.citations:
+                citations.extend(response.citations)
         except:
             pass
-        return citations
+        return list(set(citations))  # Remove duplicates
 
     def ask(
         self, question: str, context: str = "", for_citations=False
@@ -690,6 +690,7 @@ class AuxKnow:
             response_stream = self.client.chat.completions.create(
                 messages=messages, model=model, stream=True
             )
+
             full_answer = ""
             citations = []
             buffer = ""
@@ -702,13 +703,12 @@ class AuxKnow:
 
                 buffer += chunk
 
-                # Process the buffer for think blocks
                 while True:
                     if is_in_think_block:
                         end_idx = buffer.find("</think>")
                         if end_idx == -1:
                             break
-                        buffer = buffer[end_idx + 8 :]  # 8 is length of '</think>'
+                        buffer = buffer[end_idx + 8 :]  # Remove think block
                         is_in_think_block = False
                     else:
                         start_idx = buffer.find("<think>")
@@ -717,39 +717,38 @@ class AuxKnow:
                                 new_citations = self._extract_citations_from_response(
                                     response
                                 )
-                                citations.extend(new_citations)
-                                citations = list(set(citations))
+                                if new_citations:
+                                    citations.extend(new_citations)
+                                    citations = list(set(citations))
+
                                 full_answer += buffer
                                 yield AuxKnowAnswer(
                                     answer=buffer, citations=citations, is_final=False
                                 )
                             buffer = ""
                             break
+
                         if start_idx > 0:
                             pre_think = buffer[:start_idx]
-                            new_citations = self._extract_citations_from_response(
-                                response
-                            )
-                            citations.extend(new_citations)
-                            citations = list(set(citations))
                             full_answer += pre_think
                             yield AuxKnowAnswer(
                                 answer=pre_think, citations=citations, is_final=False
                             )
-                        buffer = buffer[start_idx + 7 :]  # 7 is length of '<think>'
+                        buffer = buffer[start_idx + 7 :]
                         is_in_think_block = True
 
             if buffer and not is_in_think_block:
-                new_citations = self._extract_citations_from_response(response)
-                citations.extend(new_citations)
-                citations = list(set(citations))
                 full_answer += buffer
                 yield AuxKnowAnswer(answer=buffer, citations=citations, is_final=False)
 
             if len(citations) == 0:
                 citations, _ = self.get_citations(question, full_answer)
 
-            yield AuxKnowAnswer(answer=full_answer, citations=citations, is_final=True)
+            yield AuxKnowAnswer(
+                answer=full_answer,
+                citations=citations,
+                is_final=True,
+            )
         except Exception as e:
             Printer.print_red_message(f"Error while asking question: {e}.")
             yield AuxKnowAnswer(
