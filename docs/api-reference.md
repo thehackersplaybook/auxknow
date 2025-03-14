@@ -55,6 +55,16 @@ response = auxknow.ask("What is quantum computing?")
 print(response.answer)
 ```
 
+**Example Usage: Auto Prompt Augmentation**
+
+Simply set `auto_prompt_augment` to `True` or do the same in the `set_config` method to enable automatic prompt augmentation.
+
+```
+auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key", auto_prompt_augment=True)
+response = auxknow.ask("What is quantum computing?")
+print(response.answer)
+```
+
 ##### Querying with Streaming (`ask_stream`)
 
 Sends a query to AuxKnow for an answer with streaming responses.
@@ -104,6 +114,7 @@ Modify or retrieve the current settings for AuxKnow.
   - `auto_model_routing`: Enable automatic selection of the best model.
   - `answer_length_in_paragraphs`: Set the desired response length in paragraphs.
   - `lines_per_paragraph`: Define the number of lines per paragraph.
+  - `auto_prompt_augment`: Enable automatic prompt augmentation.
 
 **Outputs for `get_config`:**
 
@@ -116,7 +127,8 @@ config = {
     "auto_query_restructuring": True,
     "auto_model_routing": False,
     "answer_length_in_paragraphs": 3,
-    "lines_per_paragraph": 5
+    "lines_per_paragraph": 5,
+    "auto_prompt_augment": True
 }
 auxknow.set_config(config)
 current_config = auxknow.get_config()

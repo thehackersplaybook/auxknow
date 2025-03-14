@@ -22,6 +22,7 @@ Powered by Perplexity’s Sonar models and OpenAI’s infrastructure, AuxKnow is
 
 - **Fully Customizable**: Configure AuxKnow to align perfectly with your application’s requirements. Its flexibility ensures it can adapt to various use cases, from simple Q&A to complex contextual reasoning.
 - **Dynamic Query Routing**: Automatically route user queries to the most appropriate AI model, for optimal performance and accuracy.
+- **Improved Response Quality**: Performs intelligent actions to improve response quality, delivering more accurate and relevant answers.
 - **Intelligent Query Restructuring**: AuxKnow restructures user queries to improve response quality, to deliver more accurate and relevant answers.
 - **Contextual Search**: Leverages predefined contexts or autonomously builds its own context to ensure answers remain grounded in relevant knowledge.
 - **Session Management**: Manage user interactions, including access to session history, context updates, and session resets. Export session data for analytics and debugging.
