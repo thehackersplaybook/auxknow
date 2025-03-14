@@ -17,7 +17,7 @@ def main():
         answer = "Answer: "
         citations = ""
         for partial_response in response:
-            if partial_response.answer:
+            if partial_response.answer and not partial_response.is_final:
                 answer += partial_response.answer
                 # Clear the line and print the current answer
                 sys.stdout.write(partial_response.answer)
