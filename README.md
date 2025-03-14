@@ -101,6 +101,35 @@ AuxKnow is designed to cater to a wide range of scenarios, including:
 
 ---
 
+# Changelog
+
+## 🚀 v0.0.11 - Deep Research Mode
+
+- 🛠 **Conduct Deep Research**: The `ask` methods now support deep research mode that can be enabled with a flag.
+
+---
+
+## 🚀 v0.0.10 - Performance & Accuracy Boost
+
+- 🛠 **Unbiased Reasoning Mode**: Further refinements for enhanced neutrality.
+- ⚡ **Streaming Enhancements**: Faster response times with optimized performance.
+- 🎯 **Accuracy Improvements**: Fine-tuned models for better contextual understanding.
+
+---
+
+## 🔍 v0.0.9 - DeepSeek R1 & Unbiased Reasoning
+
+- 🤖 **Integrated DeepSeek R1**: Uncensored responses with citations.
+- 🧠 **Unbiased Reasoning Mode**: Ensuring neutrality and factual accuracy.
+
+---
+
+## ✨ v0.0.8 - Auto Prompt Augmentation
+
+- 🚀 **Auto Prompt Augmentation**: Boosts response quality through automated prompt augmentation.
+
+---
+
 ## Contributing
 
 We welcome contributions from developers around the globe. To get started, please review the [Contributing Guidelines](https://the-hackers-playbook.gitbook.io/auxknow/contributions) and submit your ideas, bug reports, or pull requests. Together, we can make AuxKnow even better.
