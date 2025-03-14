@@ -16,6 +16,10 @@ Key features include:
 - Context-awareness.
 - Adjustable response length.
 - Source attribution via citations.
+- Auto Prompt Augmentation (enabled by default).
+- Unbiased reasoning mode (enabled by default).
+
+Both **Auto Prompt Augmentation** and **Unbiased Reasoning Mode** are enabled by default but can be configured using `set_config`.
 
 For a detailed description of each feature, check out [Features](introduction.md#features) in the Introduction Section.
 
@@ -46,6 +50,7 @@ Sends a query to AuxKnow for an answer. Queries can optionally include additiona
 
 - `response.answer`: A complete answer object.
 - `response.citations`: A complete list of all relevant citations.
+- `response.is_final`: Boolean indicating if the response is final.
 
 **Example Usage:**
 
@@ -57,7 +62,7 @@ print(response.answer)
 
 **Example Usage: Auto Prompt Augmentation**
 
-Simply set `auto_prompt_augment` to `True` or do the same in the `set_config` method to enable automatic prompt augmentation.
+Simply set `auto_prompt_augment` to `True` or pass it as a dict when calling the `set_config` method to enable automatic prompt augmentation. This improves response quality at the cost of slightly slower responses.
 
 ```python
 auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key", auto_prompt_augment=True)
@@ -114,7 +119,8 @@ Modify or retrieve the current settings for AuxKnow.
   - `auto_model_routing`: Enable automatic selection of the best model.
   - `answer_length_in_paragraphs`: Set the desired response length in paragraphs.
   - `lines_per_paragraph`: Define the number of lines per paragraph.
-  - `auto_prompt_augment`: Enable automatic prompt augmentation.
+  - `auto_prompt_augment`: Enable or disable automatic prompt augmentation (default: `True`).
+  - `enable_unbiased_reasoning`: Enable or disable unbiased reasoning mode (default: `True`).
 
 **Outputs for `get_config`:**
 
@@ -128,7 +134,8 @@ config = {
     "auto_model_routing": False,
     "answer_length_in_paragraphs": 3,
     "lines_per_paragraph": 5,
-    "auto_prompt_augment": True
+    "auto_prompt_augment": False,  # Disable prompt augmentation
+    "enable_unbiased_reasoning": False  # Disable unbiased reasoning
 }
 auxknow.set_config(config)
 current_config = auxknow.get_config()
@@ -239,6 +246,8 @@ AuxKnow’s configuration object defines global settings for query behavior and 
 - `auto_query_restructuring`: Restructure queries for better results.
 - `answer_length_in_paragraphs`: Define the length of responses in paragraphs.
 - `lines_per_paragraph`: Specify the number of lines per paragraph in responses.
+- `enable_unbiased_reasoning`: Allow responses with unrestricted, factual reasoning (default: `True`).
+- `auto_prompt_augment`: Enable automatic prompt augmentation (default: `True`).
 
 **Example Usage:**
 
@@ -247,7 +256,9 @@ config = AuxKnowConfig(
     auto_model_routing=True,
     auto_query_restructuring=True,
     answer_length_in_paragraphs=3,
-    lines_per_paragraph=5
+    lines_per_paragraph=5,
+    enable_unbiased_reasoning=False,  # Change setting
+    auto_prompt_augment=False  # Change setting
 )
 print(config.auto_model_routing)
 ```
