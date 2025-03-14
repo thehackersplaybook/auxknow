@@ -434,8 +434,6 @@ class AuxKnow:
         elif lines_per_paragraph:
             self.config.lines_per_paragraph = lines_per_paragraph
 
-        self.config = config
-
     def get_config(self) -> AuxKnowConfig:
         """Get the configuration for AuxKnow.
 
