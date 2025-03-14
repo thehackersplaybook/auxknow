@@ -16,6 +16,7 @@ from .constants import (
     DEFAULT_DEEP_RESEARCH_ENABLED,
     DEFAULT_DEEP_RESEARCH_MODEL,
     DEFAULT_AUXKNOW_SYSTEM_PROMPT,
+    DEFAULT_FAST_MODE_ENABLED,
 )
 from dotenv import load_dotenv
 from copy import deepcopy
@@ -46,6 +47,7 @@ class AuxKnowConfig(BaseModel):
         auto_query_restructuring (bool): Whether to automatically restructure queries.
         answer_length_in_paragraphs (int): The length of the answer in paragraphs.
         lines_per_paragraph (int): The number of lines per paragraph.
+        fast_mode (bool): When enabled, overrides all other settings to provide fastest possible response.
     """
 
     auto_model_routing: bool = True
@@ -54,6 +56,7 @@ class AuxKnowConfig(BaseModel):
     lines_per_paragraph: int = DEFAULT_LINES_PER_PARAGRAPH
     auto_prompt_augment: bool = DEFAULT_AUTO_PROMPT_AUGMENT
     enable_unibiased_reasoning: bool = DEFAULT_ENABLE_UNBIASED_REASONING
+    fast_mode: bool = DEFAULT_FAST_MODE_ENABLED
 
 
 class AuxKnowSession(BaseModel):
@@ -73,12 +76,15 @@ class AuxKnowSession(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def ask(self, question: str, deep_research=False) -> AuxKnowAnswer:
+    def ask(
+        self, question: str, deep_research=False, fast_mode=DEFAULT_FAST_MODE_ENABLED
+    ) -> AuxKnowAnswer:
         """Ask a question within this session to maintain context.
 
         Args:
             question (str): The question to ask.
             deep_research (bool): Whether to enable deep research mode. (Default: False)
+            fast_mode (bool): When True, overrides other settings for fastest response.
 
         Returns:
             AuxKnowAnswer: The answer.
@@ -86,17 +92,21 @@ class AuxKnowSession(BaseModel):
         if self.closed:
             raise ValueError("Cannot ask a question on a closed session.")
         return self.auxknow._ask_with_context(
-            self, question, deep_research=deep_research
+            self, question, deep_research=deep_research, fast_mode=fast_mode
         )
 
     def ask_stream(
-        self, question: str, deep_research=DEFAULT_DEEP_RESEARCH_ENABLED
+        self,
+        question: str,
+        deep_research=DEFAULT_DEEP_RESEARCH_ENABLED,
+        fast_mode=DEFAULT_FAST_MODE_ENABLED,
     ) -> Generator[AuxKnowAnswer, None, None]:
         """Ask a question within this session to maintain context with streaming response.
 
         Args:
             question (str): The question to ask.
             deep_research (bool): Whether to enable deep research mode. (Default: False)
+            fast_mode (bool): When True, overrides other settings for fastest response.
 
         Returns:
             Generator[AuxKnowAnswer, None, None]: A generator of answers.
@@ -104,7 +114,7 @@ class AuxKnowSession(BaseModel):
         if self.closed:
             raise ValueError("Cannot ask a question on a closed session.")
         return self.auxknow._ask_with_context_stream(
-            self, question, deep_research=deep_research
+            self, question, deep_research=deep_research, fast_mode=fast_mode
         )
 
     def close(self) -> None:
@@ -396,6 +406,7 @@ class AuxKnow:
         self.config.enable_unibiased_reasoning = config.get(
             "enable_unbiased_reasoning", DEFAULT_ENABLE_UNBIASED_REASONING
         )
+        self.config.fast_mode = config.get("fast_mode", False)
 
         if self.config.auto_query_restructuring != auto_query_restructuring:
             self.config.auto_query_restructuring = auto_query_restructuring
@@ -526,7 +537,21 @@ class AuxKnow:
             pass
         return list(set(citations))  # Remove duplicates
 
-    def _get_model(self, question: str, deep_research: bool) -> str:
+    def _get_model(
+        self, question: str, deep_research: bool, fast_mode: bool = False
+    ) -> str:
+        """Get the model to use for the query.
+
+        Args:
+            question (str): The question being asked
+            deep_research (bool): Whether deep research mode is enabled
+            fast_mode (bool): Whether fast mode is enabled (overrides other settings)
+
+        Returns:
+            str: The model name to use
+        """
+        if fast_mode:
+            return "sonar"  # Fast mode always uses sonar
         model = DEFAULT_PERPLEXITY_MODEL
         if self.config.auto_model_routing and not deep_research:
             model = self.__route_query_to_model(question)
@@ -566,22 +591,29 @@ class AuxKnow:
         context: str = "",
         for_citations=False,
         deep_research=DEFAULT_DEEP_RESEARCH_ENABLED,
+        fast_mode=DEFAULT_FAST_MODE_ENABLED,
     ) -> AuxKnowAnswer:
         """Ask a question to AuxKnow.
 
         Args:
             question (str): The question to ask.
             context (str): The context for the question.
-            deep_research (bool): Whether to enable deep research mode. (Default: False)
+            deep_research (bool): Whether to enable deep research mode.
+            fast_mode (bool): When True, overrides other settings for fastest response.
 
         Returns:
             AuxKnowAnswer: The answer.
         """
         try:
-            if self.config.auto_query_restructuring:
+            if self.config.fast_mode:
+                fast_mode = True
+
+            if not fast_mode and self.config.auto_query_restructuring:
                 question = self.__restructure_query(question)
 
-            model = self._get_model(question=question, deep_research=deep_research)
+            model = self._get_model(
+                question=question, deep_research=deep_research, fast_mode=fast_mode
+            )
 
             if self.verbose and not for_citations:
                 Printer.print_yellow_message(
@@ -604,7 +636,7 @@ class AuxKnow:
                 question, context, deep_research=deep_research
             )
 
-            if self.config.auto_prompt_augment:
+            if not fast_mode and self.config.auto_prompt_augment:
                 prompt_augmentation_segment = self._get_prompt_augmentation_segment(
                     question, context
                 )
@@ -653,22 +685,26 @@ class AuxKnow:
         question: str,
         context: str = "",
         deep_research=DEFAULT_DEEP_RESEARCH_ENABLED,
+        fast_mode=DEFAULT_FAST_MODE_ENABLED,
     ) -> Generator[AuxKnowAnswer, None, None]:
         """Ask a question to AuxKnow with streaming response.
 
         Args:
             question (str): The question to ask.
             context (str): The context for the question.
-            deep_research (bool): Whether to enable deep research mode. (Default: False)
+            deep_research (bool): Whether to enable deep research mode.
+            fast_mode (bool): When True, overrides other settings for fastest response.
 
         Returns:
             Generator[AuxKnowAnswer, None, None]: A generator of answers.
         """
         try:
-            if self.config.auto_query_restructuring:
+            if not fast_mode and self.config.auto_query_restructuring:
                 question = self.__restructure_query(question)
 
-            model = self._get_model(question=question, deep_research=deep_research)
+            model = self._get_model(
+                question=question, deep_research=deep_research, fast_mode=fast_mode
+            )
 
             if self.verbose:
                 Printer.print_yellow_message(
@@ -692,7 +728,7 @@ class AuxKnow:
                 question, context, deep_research=deep_research
             )
 
-            if self.config.auto_prompt_augment:
+            if not fast_mode and self.config.auto_prompt_augment:
                 prompt_augmentation_segment = self._get_prompt_augmentation_segment(
                     question, context
                 )
@@ -783,21 +819,22 @@ class AuxKnow:
         session: AuxKnowSession,
         question: str,
         deep_research=DEFAULT_DEEP_RESEARCH_ENABLED,
+        fast_mode=DEFAULT_FAST_MODE_ENABLED,
     ) -> Generator[AuxKnowAnswer, None, None]:
         """Ask a question within a session to maintain context with streaming.
 
         Args:
             session (AuxKnowSession): The session in which to ask the question.
-        Args:
-            session (AuxKnowSession): The session in which to ask the question.
             question (str): The question to ask.
+            deep_research (bool): Whether deep research mode is enabled.
+            fast_mode (bool): When True, overrides other settings for fastest response.
 
         Returns:
             Generator[AuxKnowAnswer, None, None]: A generator of answers.
         """
         context_string = self._build_context_string(session.context)
         answer_stream = self.ask_stream(
-            question, context_string, deep_research=deep_research
+            question, context_string, deep_research=deep_research, fast_mode=fast_mode
         )
         for partial_answer in answer_stream:
             session.context.append(
@@ -810,6 +847,7 @@ class AuxKnow:
         session: AuxKnowSession,
         question: str,
         deep_research=DEFAULT_DEEP_RESEARCH_ENABLED,
+        fast_mode=DEFAULT_FAST_MODE_ENABLED,
     ) -> AuxKnowAnswer:
         """Ask a question within a session to maintain context.
 
@@ -818,13 +856,18 @@ class AuxKnow:
         Args:
             session (AuxKnowSession): The session in which to ask the question.
             question (str): The question to ask.
+            deep_research (bool): Whether deep research mode is enabled.
+            fast_mode (bool): When True, overrides other settings for fastest response.
 
         Returns:
             AuxKnowAnswer: The answers object.
         """
         context_string = self._build_context_string(session.context)
         return self.ask(
-            question=question, context=context_string, deep_research=deep_research
+            question=question,
+            context=context_string,
+            deep_research=deep_research,
+            fast_mode=fast_mode,
         )
 
     def create_session(self) -> AuxKnowSession:

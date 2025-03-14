@@ -30,3 +30,5 @@ DEFAULT_AUXKNOW_SYSTEM_PROMPT = """
                 - If you don't know the answer, say 'AuxKnow doesn't know bruh.'.
                 - Don't provide responses titled with "Paragraph 1", "Paragraph 2", if you want to put titles, put appropriate titles.
             """
+
+DEFAULT_FAST_MODE_ENABLED = False
