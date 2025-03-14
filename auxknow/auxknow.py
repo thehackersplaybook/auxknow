@@ -1,23 +1,14 @@
+#
+# AuxKnow: The world's most advanced, state-of-the-art Answer Engine.
+# Author: Aditya Patange (AdiPat)
+#
+# Copyright (c) 2025 The Hackers Playbook
+#
 from openai import OpenAI
 import os
 from pydantic import BaseModel, ConfigDict
 from .printer import Printer
-from .constants import (
-    DEFAULT_ANSWER_LENGTH_PARAGRAPHS,
-    DEFAULT_LINES_PER_PARAGRAPH,
-    MAX_ANSWER_LENGTH_PARAGRAPHS,
-    MAX_LINES_PER_PARAGRAPH,
-    DEFAULT_PERPLEXITY_MODEL,
-    MAX_CONTEXT_TOKENS,
-    DEFAULT_AUTO_PROMPT_AUGMENT,
-    DEFAULT_PROMPT_AUGMENTATION_TEMPERATURE,
-    DEFAULT_PROMPT_AUGMENTATION_MODEL,
-    DEFAULT_ENABLE_UNBIASED_REASONING,
-    DEFAULT_DEEP_RESEARCH_ENABLED,
-    DEFAULT_DEEP_RESEARCH_MODEL,
-    DEFAULT_AUXKNOW_SYSTEM_PROMPT,
-    DEFAULT_FAST_MODE_ENABLED,
-)
+from .constants import Constants
 from dotenv import load_dotenv
 from copy import deepcopy
 from typing import Generator, Optional, Union
@@ -34,7 +25,7 @@ class AuxKnowAnswer(BaseModel):
         citations (list[str]): List of citations for the answer.
     """
 
-    is_final: bool = False
+    is_final: bool = Constants.INITIAL_ANSWER_IS_FINAL_ENABLED
     answer: str
     citations: list[str]
 
@@ -50,13 +41,13 @@ class AuxKnowConfig(BaseModel):
         fast_mode (bool): When enabled, overrides all other settings to provide fastest possible response.
     """
 
-    auto_model_routing: bool = True
-    auto_query_restructuring: bool = True
-    answer_length_in_paragraphs: int = DEFAULT_ANSWER_LENGTH_PARAGRAPHS
-    lines_per_paragraph: int = DEFAULT_LINES_PER_PARAGRAPH
-    auto_prompt_augment: bool = DEFAULT_AUTO_PROMPT_AUGMENT
-    enable_unibiased_reasoning: bool = DEFAULT_ENABLE_UNBIASED_REASONING
-    fast_mode: bool = DEFAULT_FAST_MODE_ENABLED
+    auto_model_routing: bool = Constants.DEFAULT_AUTO_MODEL_ROUTING_ENABLED
+    auto_query_restructuring: bool = Constants.DEFAULT_AUTO_QUERY_RESTRUCTURING_ENABLED
+    answer_length_in_paragraphs: int = Constants.DEFAULT_ANSWER_LENGTH_PARAGRAPHS
+    lines_per_paragraph: int = Constants.DEFAULT_LINES_PER_PARAGRAPH
+    auto_prompt_augment: bool = Constants.DEFAULT_AUTO_PROMPT_AUGMENT
+    enable_unibiased_reasoning: bool = Constants.DEFAULT_ENABLE_UNBIASED_REASONING
+    fast_mode: bool = Constants.DEFAULT_FAST_MODE_ENABLED
 
 
 class AuxKnowSession(BaseModel):
@@ -72,12 +63,15 @@ class AuxKnowSession(BaseModel):
     session_id: str
     context: list[dict[str, str]] = []
     auxknow: "AuxKnow"
-    closed: bool = False
+    closed: bool = Constants.DEFAULT_SESSION_CLOSED_STATUS
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=Constants.ARBITRARY_TYPES_ALLOWED)
 
     def ask(
-        self, question: str, deep_research=False, fast_mode=DEFAULT_FAST_MODE_ENABLED
+        self,
+        question: str,
+        deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
+        fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
     ) -> AuxKnowAnswer:
         """Ask a question within this session to maintain context.
 
@@ -98,8 +92,8 @@ class AuxKnowSession(BaseModel):
     def ask_stream(
         self,
         question: str,
-        deep_research=DEFAULT_DEEP_RESEARCH_ENABLED,
-        fast_mode=DEFAULT_FAST_MODE_ENABLED,
+        deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
+        fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
     ) -> Generator[AuxKnowAnswer, None, None]:
         """Ask a question within this session to maintain context with streaming response.
 
@@ -112,7 +106,7 @@ class AuxKnowSession(BaseModel):
             Generator[AuxKnowAnswer, None, None]: A generator of answers.
         """
         if self.closed:
-            raise ValueError("Cannot ask a question on a closed session.")
+            raise ValueError(Constants.ERROR_CLOSED_SESSION)
         return self.auxknow._ask_with_context_stream(
             self, question, deep_research=deep_research, fast_mode=fast_mode
         )
@@ -135,8 +129,8 @@ class AuxKnow:
         self,
         api_key: Optional[str] = None,
         openai_api_key: Optional[str] = None,
-        verbose: bool = False,
-        auto_prompt_augment: bool = DEFAULT_AUTO_PROMPT_AUGMENT,
+        verbose: bool = Constants.DEFAULT_VERBOSE_ENABLED,
+        auto_prompt_augment: bool = Constants.DEFAULT_AUTO_PROMPT_AUGMENT,
     ):
         """Initialize the AuxKnow instance.
 
@@ -174,7 +168,9 @@ class AuxKnow:
             )
             return
 
-        self.config.auto_prompt_augment = auto_prompt_augment
+        self.config.auto_prompt_augment = (
+            auto_prompt_augment or self.config.auto_prompt_augment
+        )
 
         if self.config.auto_prompt_augment and self.verbose:
             Printer.print_yellow_message("🔥 Prompt Augmentation enabled!")
@@ -183,7 +179,7 @@ class AuxKnow:
         llm_initialized = self.__ping_test_llm()
 
         self.client = OpenAI(
-            api_key=perplexity_api_key, base_url="https://api.perplexity.ai"
+            api_key=perplexity_api_key, base_url=Constants.PERPLEXITY_API_BASE_URL
         )
         self.initialized = self._ping_test()
         self.initialized = self.initialized and llm_initialized
@@ -196,7 +192,7 @@ class AuxKnow:
     def __load_environment_variables(self) -> None:
         """Load the environment variables."""
         cwd_path = os.getcwd()
-        env_path = os.path.join(cwd_path, ".env")
+        env_path = os.path.join(cwd_path, Constants.ENV_FILE)
 
         if self.verbose:
             Printer.print_light_grey_message(
@@ -224,17 +220,17 @@ class AuxKnow:
             Query: '''{query}'''
             RESPOND STRICTLY WITH THE RESTRUCTURED QUERY ONLY, NOTHING ELSE.
             """
-            system = """
-                You are AuxKnow, an advanced Answer Engine that provides answers to the user's questions.
-                In this instance, you will be acting as a 'Query Restructurer' to fine-tune the query for better results.
-            """
+            system = (
+                Constants.DEFAULT_AUXKNOW_SYSTEM_PROMPT
+                + "\nIn this instance, you will be acting as a 'Query Restructurer' to fine-tune the query for better results."
+            )
             messages = [
                 {"role": "system", "content": system},
                 {"role": "user", "content": prompt},
             ]
             response = self.llm.chat.completions.create(
                 messages=messages,
-                model="gpt-4o-mini",
+                model=Constants.MODEL_GPT4O_MINI,
             )
             restructured_query = response.choices[0].message.content
             if self.verbose:
@@ -257,9 +253,9 @@ class AuxKnow:
         Returns:
             str: The model name to use for the query.
         """
-        supported_models = ["sonar", "sonar-pro"]
+        supported_models = [Constants.MODEL_SONAR, Constants.MODEL_SONAR_PRO]
         if self.config.enable_unibiased_reasoning:
-            supported_models.append("r1-1776")
+            supported_models.append(Constants.MODEL_R1_1776)
         try:
             prompt = f"""
             Query: '''{query}'''
@@ -278,10 +274,10 @@ class AuxKnow:
 
             Strictly respond with **only** {', '.join(supported_models)}. 
             """
-            system = """
-                You are AuxKnow, an advanced Answer Engine that provides answers to the user's questions.
-                In this instance, you will be acting as a 'Model Router' to determine which model to use for the given query.
-            """
+            system = (
+                Constants.DEFAULT_AUXKNOW_SYSTEM_PROMPT
+                + "\nIn this instance, you will be acting as a 'Model Router' to determine which model to use for the given query."
+            )
 
             messages = [
                 {"role": "system", "content": system},
@@ -290,22 +286,26 @@ class AuxKnow:
 
             response = self.llm.chat.completions.create(
                 messages=messages,
-                model="gpt-4o-mini",
+                model=Constants.MODEL_GPT4O_MINI,
             )
 
             model = response.choices[0].message.content
 
-            if model.lower() not in ["sonar", "sonar-pro", "r1-1776"]:
+            if model.lower() not in [
+                Constants.MODEL_SONAR,
+                Constants.MODEL_SONAR_PRO,
+                Constants.MODEL_R1_1776,
+            ]:
                 Printer.print_red_message(
-                    f"Invalid model name '{model}'. Please respond with either 'sonar' or 'sonar-pro' or 'r1-1776'. Defaulting to 'sonar'."
+                    f"Invalid model name '{model}'. Please respond with either '{Constants.MODEL_SONAR}' or '{Constants.MODEL_SONAR_PRO}' or '{Constants.MODEL_R1_1776}'. Defaulting to '{Constants.MODEL_SONAR}'."
                 )
-                return "sonar"
+                return Constants.MODEL_SONAR
             return model
         except Exception as e:
             Printer.print_red_message(
-                f"Error while routing query to model: {e}. Defaulting to 'sonar'."
+                f"Error while routing query to model: {e}. Defaulting to '{Constants.MODEL_SONAR}'."
             )
-            return "sonar"
+            return Constants.MODEL_SONAR
 
     def __ping_test_llm(self) -> bool:
         """Perform a ping test on the LLM API.
@@ -318,15 +318,15 @@ class AuxKnow:
                 messages=[
                     {
                         "role": "system",
-                        "content": "This is a simple PING test to check the API, respond with PONG.",
+                        "content": Constants.PING_TEST_SYSTEM_PROMPT,
                     },
                     {
                         "role": "user",
-                        "content": "PING",
+                        "content": Constants.PING_TEST_USER_PROMPT,
                     },
                 ],
-                model="gpt-4o-mini",
-                max_tokens=200,
+                model=Constants.MODEL_GPT4O_MINI,
+                max_completion_tokens=Constants.PING_TEST_MAX_TOKENS,
             )
             pong = response.choices[0].message.content
             if self.verbose:
@@ -354,15 +354,12 @@ class AuxKnow:
                 messages=[
                     {
                         "role": "system",
-                        "content": "This is a simple PING test to check the API, respond with PONG.",
+                        "content": Constants.PING_TEST_SYSTEM_PROMPT,
                     },
-                    {
-                        "role": "user",
-                        "content": "PING",
-                    },
+                    {"role": "user", "content": Constants.PING_TEST_USER_PROMPT},
                 ],
-                model="sonar",
-                max_tokens=200,
+                model=Constants.MODEL_SONAR,
+                max_tokens=Constants.PING_TEST_MAX_TOKENS,
             )
             pong = response.choices[0].message.content
             if self.verbose:
@@ -400,11 +397,11 @@ class AuxKnow:
         auto_model_routing = config.get("auto_model_routing")
         lines_per_paragraph = config.get("lines_per_paragraph")
         auto_prompt_augment = config.get(
-            "auto_prompt_augment", DEFAULT_AUTO_PROMPT_AUGMENT
+            "auto_prompt_augment", Constants.DEFAULT_AUTO_PROMPT_AUGMENT
         )
         self.config.auto_prompt_augment = auto_prompt_augment
         self.config.enable_unibiased_reasoning = config.get(
-            "enable_unbiased_reasoning", DEFAULT_ENABLE_UNBIASED_REASONING
+            "enable_unbiased_reasoning", Constants.DEFAULT_ENABLE_UNBIASED_REASONING
         )
         self.config.fast_mode = config.get("fast_mode", False)
 
@@ -415,22 +412,27 @@ class AuxKnow:
             self.config.auto_model_routing = auto_model_routing
 
         self.config.enable_unibiased_reasoning = config.get(
-            "enable_unbiased_reasoning", DEFAULT_ENABLE_UNBIASED_REASONING
+            "enable_unbiased_reasoning", Constants.DEFAULT_ENABLE_UNBIASED_REASONING
         )
 
-        if self.config.answer_length_in_paragraphs > MAX_ANSWER_LENGTH_PARAGRAPHS:
+        if (
+            self.config.answer_length_in_paragraphs
+            > Constants.MAX_ANSWER_LENGTH_PARAGRAPHS
+        ):
             Printer.print_yellow_message(
-                f"Answer length in paragraphs exceeds the maximum limit of {MAX_ANSWER_LENGTH_PARAGRAPHS}. Defaulting to {DEFAULT_ANSWER_LENGTH_PARAGRAPHS}."
+                f"Answer length in paragraphs exceeds the maximum limit of {Constants.MAX_ANSWER_LENGTH_PARAGRAPHS}. Defaulting to {Constants.DEFAULT_ANSWER_LENGTH_PARAGRAPHS}."
             )
-            self.config.answer_length_in_paragraphs = DEFAULT_ANSWER_LENGTH_PARAGRAPHS
+            self.config.answer_length_in_paragraphs = (
+                Constants.DEFAULT_ANSWER_LENGTH_PARAGRAPHS
+            )
         elif answer_length_in_paragraphs:
             self.config.answer_length_in_paragraphs = answer_length_in_paragraphs
 
-        if self.config.lines_per_paragraph > MAX_LINES_PER_PARAGRAPH:
+        if self.config.lines_per_paragraph > Constants.MAX_LINES_PER_PARAGRAPH:
             Printer.print_yellow_message(
-                f"Lines per paragraph exceeds the maximum limit of {MAX_LINES_PER_PARAGRAPH}. Defaulting to {DEFAULT_LINES_PER_PARAGRAPH}."
+                f"Lines per paragraph exceeds the maximum limit of {Constants.MAX_LINES_PER_PARAGRAPH}. Defaulting to {Constants.DEFAULT_LINES_PER_PARAGRAPH}."
             )
-            self.config.lines_per_paragraph = DEFAULT_LINES_PER_PARAGRAPH
+            self.config.lines_per_paragraph = Constants.DEFAULT_LINES_PER_PARAGRAPH
         elif lines_per_paragraph:
             self.config.lines_per_paragraph = lines_per_paragraph
 
@@ -480,11 +482,11 @@ class AuxKnow:
                 Context: {context}
             """
             response = self.llm.chat.completions.create(
-                model=DEFAULT_PROMPT_AUGMENTATION_MODEL,
+                model=Constants.DEFAULT_PROMPT_AUGMENTATION_MODEL,
                 messages=[
                     {"role": "user", "content": user_prompt},
                 ],
-                temperature=DEFAULT_PROMPT_AUGMENTATION_TEMPERATURE,
+                temperature=Constants.DEFAULT_PROMPT_AUGMENTATION_TEMPERATURE,
             )
             return response.choices[0].message.content
         except:
@@ -549,19 +551,19 @@ class AuxKnow:
             str: The model name to use
         """
         if fast_mode:
-            return "sonar"  # Fast mode always uses sonar
-        model = DEFAULT_PERPLEXITY_MODEL
+            return Constants.MODEL_SONAR  # Fast mode always uses sonar
+        model = Constants.DEFAULT_PERPLEXITY_MODEL
         if self.config.auto_model_routing and not deep_research:
             model = self.__route_query_to_model(question)
         elif deep_research:
-            model = DEFAULT_DEEP_RESEARCH_MODEL
+            model = Constants.DEFAULT_DEEP_RESEARCH_MODEL
         return model
 
     def _build_user_ask_prompt(
         self,
         question: str,
-        context: str = "",
-        deep_research=DEFAULT_DEEP_RESEARCH_ENABLED,
+        context: str = Constants.EMPTY_CONTEXT,
+        deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
     ) -> str:
         """
         Constructs the user prompt for asking a question.
@@ -587,9 +589,9 @@ class AuxKnow:
         self,
         question: str,
         context: str = "",
-        for_citations=False,
-        deep_research=DEFAULT_DEEP_RESEARCH_ENABLED,
-        fast_mode=DEFAULT_FAST_MODE_ENABLED,
+        for_citations=Constants.DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED,
+        deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
+        fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
     ) -> AuxKnowAnswer:
         """Ask a question to AuxKnow.
 
@@ -619,16 +621,14 @@ class AuxKnow:
                 )
 
             if not self.initialized:
-                Printer.print_red_message(
-                    "AuxKnow API not initialized. Cannot ask questions."
-                )
+                Printer.print_red_message(Constants.UNINITIALIZED_ANSWER)
                 return AuxKnowAnswer(
-                    answer="AuxKnow API not initialized. Cannot ask questions.",
+                    answer=Constants.UNINITIALIZED_ANSWER,
                     citations=[],
                     is_final=True,
                 )
 
-            system_prompt = DEFAULT_AUXKNOW_SYSTEM_PROMPT
+            system_prompt = Constants.DEFAULT_AUXKNOW_SYSTEM_PROMPT
 
             user_prompt = self._build_user_ask_prompt(
                 question, context, deep_research=deep_research
@@ -656,9 +656,13 @@ class AuxKnow:
 
             answer = response.choices[0].message.content
             clean_answer = re.sub(
-                r"<think>.*?</think>", "", answer, flags=re.DOTALL
+                Constants.THINK_BLOCK_PATTERN, "", answer, flags=re.DOTALL
             ).strip()
-            clean_answer = re.sub(r"\n{3,}", "\n\n", clean_answer)
+            clean_answer = re.sub(
+                Constants.MULTIPLE_NEWLINES_PATTERN,
+                Constants.NEWLINE_REPLACEMENT,
+                clean_answer,
+            )
 
             citations = self._extract_citations_from_response(response)
 
@@ -673,7 +677,7 @@ class AuxKnow:
         except Exception as e:
             Printer.print_red_message(f"Error while asking question: {e}.")
             return AuxKnowAnswer(
-                answer="Sorry, can't provide an answer right now. Please try again later!",
+                answer=Constants.ERROR_DEFAULT,
                 citations=[],
                 is_final=True,
             )
@@ -681,9 +685,9 @@ class AuxKnow:
     def ask_stream(
         self,
         question: str,
-        context: str = "",
-        deep_research=DEFAULT_DEEP_RESEARCH_ENABLED,
-        fast_mode=DEFAULT_FAST_MODE_ENABLED,
+        context: str = Constants.EMPTY_CONTEXT,
+        deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
+        fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
     ) -> Generator[AuxKnowAnswer, None, None]:
         """Ask a question to AuxKnow with streaming response.
 
@@ -720,7 +724,7 @@ class AuxKnow:
                 )
                 return
 
-            system_prompt = DEFAULT_AUXKNOW_SYSTEM_PROMPT
+            system_prompt = Constants.DEFAULT_AUXKNOW_SYSTEM_PROMPT
 
             user_prompt = self._build_user_ask_prompt(
                 question, context, deep_research=deep_research
@@ -816,8 +820,8 @@ class AuxKnow:
         self,
         session: AuxKnowSession,
         question: str,
-        deep_research=DEFAULT_DEEP_RESEARCH_ENABLED,
-        fast_mode=DEFAULT_FAST_MODE_ENABLED,
+        deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
+        fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
     ) -> Generator[AuxKnowAnswer, None, None]:
         """Ask a question within a session to maintain context with streaming.
 
@@ -844,8 +848,8 @@ class AuxKnow:
         self,
         session: AuxKnowSession,
         question: str,
-        deep_research=DEFAULT_DEEP_RESEARCH_ENABLED,
-        fast_mode=DEFAULT_FAST_MODE_ENABLED,
+        deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
+        fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
     ) -> AuxKnowAnswer:
         """Ask a question within a session to maintain context.
 
@@ -899,9 +903,12 @@ class AuxKnow:
             str: The context string.
         """
         context_string = ""
-        for qa in context[-10:]:  # Take the last 10 question-answer pairs
+        for qa in context[-Constants.MAX_RECENT_CONTEXT_PAIRS :]:
             qa_string = f"Q: {qa['question']}\nA: {qa['answer']}\n"
-            if len((context_string + qa_string).split()) <= MAX_CONTEXT_TOKENS:
+            if (
+                len((context_string + qa_string).split())
+                <= Constants.MAX_CONTEXT_TOKENS
+            ):
                 context_string += qa_string
             else:
                 break
@@ -914,7 +921,6 @@ class AuxKnow:
         Gets the citations for the given query and response.
 
         Args:
-            llm (OpenAI): The Large Language model to generate metadata for citation generation.
             query (str): The query to search for.
             query_response (str): The response to the query.
 
