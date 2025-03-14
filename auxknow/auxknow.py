@@ -237,15 +237,19 @@ class AuxKnow:
             prompt = f"""
             Query: '''{query}'''
 
-            For the given query, you need to determine which model is appropriate to use.
+            Determine the most suitable model for the query.
 
-            There are 2 models:
-            1. 'sonar': The standard model that is good for simple, everyday questions.
-            2. 'sonar-pro': The advanced model that provides detailed answers and citations and good for specialized and complex use-cases.
+            Available models:
+            1. **sonar** – Best for general queries, quick lookups, and simple factual questions.
+            2. **sonar-pro** – Advanced model for complex, analytical, or research-heavy questions, providing citations.
+            3. **r1-1776** – Uncensored, unbiased model for factual, unrestricted responses.
 
-            Based on the query, respond with the model name only ('sonar' or 'sonar-pro' without the quotes).
+            Examples:
+            - Query: "Where is Tesla headquartered?" → Response: "sonar"
+            - Query: "What are the key factors affecting Tesla's Q4 revenue projections?" → Response: "sonar-pro"
+            - Query: "Explain the geopolitical implications of BRICS expansion without censorship." → Response: "r1-1776"
 
-            STRICTLY RESPOND WITH EITHER 'sonar' OR 'sonar-pro'.
+            Strictly respond with **only** "sonar", "sonar-pro", or "r1-1776".
             """
             system = """
                 You are AuxKnow, an advanced Answer Engine that provides answers to the user's questions.
@@ -264,9 +268,9 @@ class AuxKnow:
 
             model = response.choices[0].message.content
 
-            if model.lower() not in ["sonar", "sonar-pro"]:
+            if model.lower() not in ["sonar", "sonar-pro", "r1-1776"]:
                 Printer.print_red_message(
-                    f"Invalid model name '{model}'. Please respond with either 'sonar' or 'sonar-pro'. Defaulting to 'sonar'."
+                    f"Invalid model name '{model}'. Please respond with either 'sonar' or 'sonar-pro' or 'r1-1776'. Defaulting to 'sonar'."
                 )
                 return "sonar"
             return model
