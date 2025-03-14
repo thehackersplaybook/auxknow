@@ -18,6 +18,7 @@ Key features include:
 - Source attribution via citations.
 - Auto Prompt Augmentation (enabled by default).
 - Unbiased reasoning mode (enabled by default).
+- **Deep Research Mode** for in-depth responses (configurable per query).
 
 Both **Auto Prompt Augmentation** and **Unbiased Reasoning Mode** are enabled by default but can be configured using `set_config`.
 
@@ -45,6 +46,7 @@ Sends a query to AuxKnow for an answer. Queries can optionally include additiona
 
 - `question`: The query string.
 - `context` (optional): Additional information to provide context.
+- `deep_research` (optional): Whether to enable deep research mode for more comprehensive responses (default: `False`).
 
 **Outputs:**
 
@@ -78,6 +80,7 @@ Sends a query to AuxKnow for an answer with streaming responses.
 
 - `question`: The query string.
 - `context` (optional): Additional information to provide context.
+- `deep_research` (optional): Enable deep research mode for in-depth responses.
 
 **Outputs:**
 
@@ -89,6 +92,23 @@ Sends a query to AuxKnow for an answer with streaming responses.
 auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
 for response in auxknow.ask_stream("What is quantum computing?"):
     print(response.answer)
+```
+
+##### Deep Research Mode (`deep_research=True`)
+
+**Deep Research Mode** enables AuxKnow to conduct thorough research and provide well-structured, highly detailed responses. This mode is best suited for complex, analytical, or research-heavy queries where in-depth responses are necessary.
+
+**When to use:**
+
+- When detailed, research-backed explanations are required.
+- When analyzing complex topics.
+- When higher accuracy and comprehensive coverage are needed.
+
+**Example Usage:**
+
+```python
+response = auxknow.ask("Explain the fundamentals of quantum mechanics", deep_research=True)
+print(response.answer)
 ```
 
 ##### Session Management (`create_session`)
@@ -103,7 +123,7 @@ Initiates a new session to group related queries and maintain context across mul
 
 ```python
 session = auxknow.create_session()
-response = session.ask("What is the speed of light?")
+response = session.ask("What is the speed of light?", deep_research=False)
 print(response.answer)
 session.close()
 ```
@@ -162,6 +182,7 @@ Send a query while maintaining the session’s context.
 **Inputs:**
 
 - `question`: The query string.
+- `deep_research` (optional): Enable deep research mode.
 
 **Outputs:**
 
@@ -173,7 +194,7 @@ Send a query while maintaining the session’s context.
 
 ```python
 session = auxknow.create_session()
-response = session.ask("Explain the theory of relativity.")
+response = session.ask("Explain the theory of relativity.", deep_research=False)
 print(response.answer)
 session.close()
 ```
@@ -185,6 +206,7 @@ Send a query while maintaining the session’s context with streaming responses.
 **Inputs:**
 
 - `question`: The query string.
+- `deep_research` (optional): Enable deep research mode.
 
 **Outputs:**
 
@@ -194,7 +216,7 @@ Send a query while maintaining the session’s context with streaming responses.
 
 ```python
 session = auxknow.create_session()
-for response in session.ask_stream("Explain the theory of relativity."):
+for response in session.ask_stream("Explain the theory of relativity.", deep_research=False):
     print(response.answer)
 session.close()
 ```
@@ -270,6 +292,7 @@ print(config.auto_model_routing)
 ### Querying
 
 - Flexible querying with context and streaming options.
+- Deep Research Mode for detailed answers.
 
 ### Session Management
 
