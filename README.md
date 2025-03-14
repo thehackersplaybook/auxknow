@@ -103,6 +103,12 @@ AuxKnow is designed to cater to a wide range of scenarios, including:
 
 # Changelog
 
+## 🚀 v0.0.13 - Config Fixes
+
+- 🛠 Fix incorrect setting of config which was causing an error with `set_config`.
+
+---
+
 ## 🚀 v0.0.12 - Fast Mode
 
 - 🛠 **Fastest responses**: The `ask` methods now support fast mode that can be enabled to receive the fastest possible responses at the cost of response quality and citation relevence.
