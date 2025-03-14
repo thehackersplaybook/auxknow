@@ -1,9 +1,14 @@
-#
-# AuxKnow: The world's most advanced, state-of-the-art Answer Engine.
-# Author: Aditya Patange (AdiPat)
-#
-# Copyright (c) 2025 The Hackers Playbook
-#
+"""
+AuxKnow: Advanced Question-Answering Engine with LLM Capabilities
+
+This module implements a sophisticated answer engine that leverages AI to provide accurate, context-aware responses with citation support.
+It features various features to provide accurate, reliable, and unbiased answers to user queries with high performance and efficiency.
+
+Author: Aditya Patange (AdiPat)
+Copyright (c) 2025 The Hackers Playbook
+License: AGPLv3
+"""
+
 from openai import OpenAI
 import os
 from pydantic import BaseModel, ConfigDict
@@ -17,12 +22,16 @@ import re
 
 
 class AuxKnowAnswer(BaseModel):
-    """AuxKnowAnswer class to store the response from the AuxKnow API.
+    """Response container for AuxKnow query results.
+
+    A structured container for responses from the AuxKnow engine, including
+    the answer text, associated citations, and completion status.
 
     Attributes:
-        is_final (bool): Indicates if the answer is final.
-        answer (str): The answer text.
-        citations (list[str]): List of citations for the answer.
+        is_final (bool): Indicates if this is the final response segment. Used primarily
+            in streaming mode where False indicates more segments are coming.
+        answer (str): The formatted answer text.
+        citations (list[str]): List of URLs or references supporting the answer.
     """
 
     is_final: bool = Constants.INITIAL_ANSWER_IS_FINAL_ENABLED
@@ -31,14 +40,20 @@ class AuxKnowAnswer(BaseModel):
 
 
 class AuxKnowConfig(BaseModel):
-    """AuxKnowConfig class to store the configuration for AuxKnow.
+    """Configuration settings for the AuxKnow engine.
+
+    Controls the behavior and output formatting of the answer engine.
 
     Attributes:
-        auto_model_routing (bool): Whether to automatically route queries to the appropriate model.
-        auto_query_restructuring (bool): Whether to automatically restructure queries.
-        answer_length_in_paragraphs (int): The length of the answer in paragraphs.
-        lines_per_paragraph (int): The number of lines per paragraph.
-        fast_mode (bool): When enabled, overrides all other settings to provide fastest possible response.
+        auto_model_routing (bool): Enables automatic selection of the most appropriate
+            model based on query complexity and type.
+        auto_query_restructuring (bool): Enables automatic reformatting of queries
+            for optimal response quality.
+        answer_length_in_paragraphs (int): Target number of paragraphs in responses.
+        lines_per_paragraph (int): Target number of lines per paragraph.
+        auto_prompt_augment (bool): Controls automatic prompt enhancement.
+        enable_unibiased_reasoning (bool): Enables unbiased reasoning mode.
+        fast_mode (bool): When True, optimizes for speed over quality.
     """
 
     auto_model_routing: bool = Constants.DEFAULT_AUTO_MODEL_ROUTING_ENABLED
@@ -51,13 +66,21 @@ class AuxKnowConfig(BaseModel):
 
 
 class AuxKnowSession(BaseModel):
-    """AuxKnowSession class to manage a session with AuxKnow.
+    """Manages a stateful conversation session with context tracking.
+
+    Maintains conversation history and provides context-aware responses
+    by considering previous interactions in the session.
 
     Attributes:
-        session_id (str): The unique identifier for the session.
-        context (list[dict[str, str]]): The context of the session as a list of question-answer pairs.
-        auxknow (AuxKnow): The AuxKnow instance associated with the session.
-        closed (bool): Indicates if the session is closed.
+        session_id (str): Unique identifier for the session.
+        context (list[dict[str, str]]): List of previous Q&A pairs in the session.
+            Each dict contains 'question' and 'answer' keys.
+        auxknow (AuxKnow): Reference to parent AuxKnow instance.
+        closed (bool): Session state indicator. True if session is terminated.
+
+    Note:
+        The context list is automatically pruned to maintain relevant history
+        while staying within token limits.
     """
 
     session_id: str
