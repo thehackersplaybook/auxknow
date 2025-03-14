@@ -103,6 +103,12 @@ AuxKnow is designed to cater to a wide range of scenarios, including:
 
 # Changelog
 
+## 🚀 v0.0.12 - Fast Mode
+
+- 🛠 **Fastest responses**: The `ask` methods now support fast mode that can be enabled to receive the fastest possible responses at the cost of response quality and citation relevence.
+
+---
+
 ## 🚀 v0.0.11 - Deep Research Mode
 
 - 🛠 **Conduct Deep Research**: The `ask` methods now support deep research mode that can be enabled with a flag.
