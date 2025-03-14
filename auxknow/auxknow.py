@@ -9,6 +9,9 @@ from .constants import (
     MAX_LINES_PER_PARAGRAPH,
     DEFAULT_PERPLEXITY_MODEL,
     MAX_CONTEXT_TOKENS,
+    DEFAULT_AUTO_PROMPT_AUGMENT,
+    DEFAULT_PROMPT_AUGMENTATION_TEMPERATURE,
+    DEFAULT_PROMPT_AUGMENTATION_MODEL,
 )
 from dotenv import load_dotenv
 from copy import deepcopy
@@ -44,6 +47,7 @@ class AuxKnowConfig(BaseModel):
     auto_query_restructuring: bool = True
     answer_length_in_paragraphs: int = DEFAULT_ANSWER_LENGTH_PARAGRAPHS
     lines_per_paragraph: int = DEFAULT_LINES_PER_PARAGRAPH
+    auto_prompt_augment: bool = DEFAULT_AUTO_PROMPT_AUGMENT
 
 
 class AuxKnowSession(BaseModel):
@@ -108,6 +112,7 @@ class AuxKnow:
         api_key: Optional[str] = None,
         openai_api_key: Optional[str] = None,
         verbose: bool = False,
+        auto_prompt_augment: bool = DEFAULT_AUTO_PROMPT_AUGMENT,
     ):
         """Initialize the AuxKnow instance.
 
@@ -144,6 +149,11 @@ class AuxKnow:
                 "OPENAI_API_KEY not found in environment variables. Cannot use AuxKnow."
             )
             return
+
+        self.config.auto_prompt_augment = auto_prompt_augment
+
+        if self.config.auto_prompt_augment and self.verbose:
+            Printer.print_yellow_message("🔥 Prompt Augmentation enabled!")
 
         self.llm = OpenAI(api_key=openai_api_key)
         llm_initialized = self.__ping_test_llm()
@@ -358,6 +368,10 @@ class AuxKnow:
         auto_query_restructuring = config.get("auto_query_restructuring")
         auto_model_routing = config.get("auto_model_routing")
         lines_per_paragraph = config.get("lines_per_paragraph")
+        auto_prompt_augment = config.get(
+            "auto_prompt_augment", DEFAULT_AUTO_PROMPT_AUGMENT
+        )
+        self.config.auto_prompt_augment = auto_prompt_augment
 
         if self.config.auto_query_restructuring != auto_query_restructuring:
             self.config.auto_query_restructuring = auto_query_restructuring
@@ -392,6 +406,80 @@ class AuxKnow:
         if not self.config:
             self.config = AuxKnowConfig()
         return deepcopy(self.config)
+
+    def _get_prompt_augmentation_segment(self, question: str, context: str = "") -> str:
+        """
+        Augments the prompt and returnes the supporting prompt.
+
+        Args:
+            question (str): The question to ask.
+            context (str): The context for the question.
+
+        Returns:
+            str: The supporting prompt.
+        """
+        try:
+            user_prompt = f"""
+                Your job is to provide a detailed and comprehensive supporting prompt to the given prompt. 
+
+                The supporting prompt should be a detailed and comprehensive explanation of the given prompt. 
+                It should provide a thorough and in-depth explanation of the given prompt, including its context, 
+                background, and any relevant details. The supporting prompt should be written in a clear and concise 
+                manner, using appropriate language and terminology to ensure clarity and understanding.
+
+                The supporting prompt should be structured in a way that is easy to read and understand, with clear 
+                headings and subheadings to organize the information. It should also be written in a way that is 
+                easy to follow and understand, with clear and concise language that is easy to understand.
+
+                The supporting prompt should be written in a way that is easy to read and understand, with clear 
+                headings and subheadings to organize the information. It should also be written in a way that is 
+                easy to follow and understand, with clear and concise language that is easy to understand.   
+
+                We are giving you the prompt / question and context to provide the best, most factual and comprhensive response.
+
+                Don't respond to the prompt / question, simply provide the supporting prompt.
+
+                Prompt / Question: {question}
+                Context: {context}
+            """
+            response = self.llm.chat.completions.create(
+                model=DEFAULT_PROMPT_AUGMENTATION_MODEL,
+                messages=[
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=DEFAULT_PROMPT_AUGMENTATION_TEMPERATURE,
+            )
+            return response.choices[0].message.content
+        except:
+            Printer.print_red_message(
+                "Error while getting prompt augmentation segment. Returning empty string."
+            )
+            return ""
+
+    def _augment_prompt(self, user_prompt: str, augmentation_segment: str) -> str:
+        """
+        Augments the prompt and returnes the supporting prompt.
+
+        Args:
+            user_prompt (str): The user prompt.
+            augmentation_segment (str): The augmentation segment.
+
+        Returns:
+            str: The augmented prompt.
+        """
+        try:
+            if augmentation_segment.strip() == "":
+                return user_prompt
+            augmented_prompt = f"""
+                {user_prompt}
+                {augmentation_segment}
+            """
+            return augmented_prompt
+        except:
+            Printer.print_red_message(
+                "Error while augmenting prompt. Returning original prompt."
+            )
+            return user_prompt
 
     def ask(self, question: str, context: str = "") -> AuxKnowAnswer:
         """Ask a question to AuxKnow.
@@ -434,12 +522,22 @@ class AuxKnow:
                 - If the user asks for personal information, do not provide it.
                 - Your job is to answer anything that the user asks as long as it is safe, compliant and ethical. 
                 - If you don't know the answer, say 'AuxKnow doesn't know bruh.'.
+
+                If a supporting prompt is provided, use that as additional information to understand patterns in your training data and provide a good response.
             """
 
             user_prompt = f"""
                 Question: {question}
                 Respond in {self.config.answer_length_in_paragraphs} paragraphs with {self.config.lines_per_paragraph} lines per paragraph.
             """
+
+            if self.config.auto_prompt_augment:
+                prompt_augmentation_segment = self._get_prompt_augmentation_segment(
+                    question, context
+                )
+                user_prompt = self._augment_prompt(
+                    user_prompt, prompt_augmentation_segment
+                )
 
             if context and context.strip() != "":
                 user_prompt += f"\nContext: {context}"
@@ -511,12 +609,22 @@ class AuxKnow:
                 - If the user asks for personal information, do not provide it.
                 - Your job is to answer anything that the user asks as long as it is safe, compliant and ethical. 
                 - If you don't know the answer, say 'AuxKnow doesn't know bruh.'.
+
+                If a supporting prompt is provided, use that as additional information to understand patterns in your training data and provide a good response.
             """
 
             user_prompt = f"""
                 Question: {question}
                 Respond in {self.config.answer_length_in_paragraphs} paragraphs with {self.config.lines_per_paragraph} lines per paragraph.
             """
+
+            if self.config.auto_prompt_augment:
+                prompt_augmentation_segment = self._get_prompt_augmentation_segment(
+                    question, context
+                )
+                user_prompt = self._augment_prompt(
+                    user_prompt, prompt_augmentation_segment
+                )
 
             messages = [
                 {
