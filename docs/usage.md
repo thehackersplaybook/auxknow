@@ -86,6 +86,37 @@ task_config = {
 auxknow.set_config(task_config)
 ```
 
+### Fast Mode
+
+Fast Mode enables rapid responses by using the most efficient model and settings. This mode is useful when response speed is more important than depth and citations.
+
+```python
+from auxknow import AuxKnow
+
+# Initialize the AuxKnow instance
+auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
+
+# Use fast mode with ask
+response = auxknow.ask("What is the capital of France?", fast_mode=True)
+print("Answer:", response.answer)
+
+# Use fast mode with streaming
+for partial_response in auxknow.ask_stream("Explain gravity.", fast_mode=True):
+    print(partial_response.answer, end="")
+
+# Use fast mode with sessions
+session = auxknow.create_session()
+response = session.ask("What is photosynthesis?", fast_mode=True)
+print("Answer:", response.answer)
+
+# You can also enable fast mode globally in the config
+auxknow.set_config({
+    "fast_mode": True,
+    "auto_query_restructuring": False,  # These will be ignored when fast mode is enabled
+    "auto_model_routing": False
+})
+```
+
 With these examples, you are ready to start exploring the AuxKnow library. Refer to the [API Reference](api-reference.md) for detailed method descriptions and additional options.
 
 ---

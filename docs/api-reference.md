@@ -19,6 +19,7 @@ Key features include:
 - Auto Prompt Augmentation (enabled by default).
 - Unbiased reasoning mode (enabled by default).
 - **Deep Research Mode** for in-depth responses (configurable per query).
+- **Fast Mode** for quickest possible responses (configurable globally or per query).
 
 Both **Auto Prompt Augmentation** and **Unbiased Reasoning Mode** are enabled by default but can be configured using `set_config`.
 
@@ -47,6 +48,7 @@ Sends a query to AuxKnow for an answer. Queries can optionally include additiona
 - `question`: The query string.
 - `context` (optional): Additional information to provide context.
 - `deep_research` (optional): Whether to enable deep research mode for more comprehensive responses (default: `False`).
+- `fast_mode` (optional): When enabled, overrides other settings to provide fastest possible response (default: `False`).
 
 **Outputs:**
 
@@ -81,6 +83,7 @@ Sends a query to AuxKnow for an answer with streaming responses.
 - `question`: The query string.
 - `context` (optional): Additional information to provide context.
 - `deep_research` (optional): Enable deep research mode for in-depth responses.
+- `fast_mode` (optional): When enabled, overrides other settings to provide fastest possible response.
 
 **Outputs:**
 
@@ -141,6 +144,7 @@ Modify or retrieve the current settings for AuxKnow.
   - `lines_per_paragraph`: Define the number of lines per paragraph.
   - `auto_prompt_augment`: Enable or disable automatic prompt augmentation (default: `True`).
   - `enable_unbiased_reasoning`: Enable or disable unbiased reasoning mode (default: `True`).
+  - `fast_mode`: When enabled, overrides other settings to provide fastest possible response (default: `False`).
 
 **Outputs for `get_config`:**
 
@@ -155,11 +159,36 @@ config = {
     "answer_length_in_paragraphs": 3,
     "lines_per_paragraph": 5,
     "auto_prompt_augment": False,  # Disable prompt augmentation
-    "enable_unbiased_reasoning": False  # Disable unbiased reasoning
+    "enable_unbiased_reasoning": False,  # Disable unbiased reasoning
+    "fast_mode": True  # Enable fast mode
 }
 auxknow.set_config(config)
 current_config = auxknow.get_config()
 print(current_config.auto_query_restructuring)
+```
+
+##### Fast Mode
+
+**Fast Mode** configures AuxKnow to provide the quickest possible responses.
+
+**When to use:**
+
+- When response speed is critical.
+- For simple, straightforward queries.
+- In high-throughput scenarios.
+
+**Example Usage:**
+
+```python
+# Global configuration
+config = {
+    "fast_mode": True
+}
+auxknow.set_config(config)
+
+# Per-query configuration
+response = auxknow.ask("What is quantum computing?", fast_mode=True)
+print(response.answer)
 ```
 
 ---
