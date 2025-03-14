@@ -17,7 +17,7 @@ def main():
     question = ""
 
     while question.strip().lower() != "q" or question.strip().lower() != "quit":
-        question = input("💡 Enter a question for Perplexer (Press 'q' to exit): ")
+        question = input("💡 Enter a question for AuxKnow  (Press 'q' to exit): ")
         if question.strip().lower() == "q" or question.strip().lower() == "quit":
             break
         run_auxknow(auxknow_naive, question, "Naive")
