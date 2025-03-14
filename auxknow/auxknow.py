@@ -758,10 +758,10 @@ class AuxKnow:
                 is_final=True,
             )
 
-    def _ask_with_context(
+    def _ask_with_context_stream(
         self, session: AuxKnowSession, question: str
     ) -> Generator[AuxKnowAnswer, None, None]:
-        """Ask a question within a session to maintain context.
+        """Ask a question within a session to maintain context with streaming.
 
         Args:
             session (AuxKnowSession): The session in which to ask the question.
@@ -779,6 +779,23 @@ class AuxKnow:
                 {"question": question, "answer": partial_answer.answer}
             )
             yield partial_answer
+
+    def _ask_with_context(
+        self, session: AuxKnowSession, question: str
+    ) -> AuxKnowAnswer:
+        """Ask a question within a session to maintain context.
+
+        Args:
+            session (AuxKnowSession): The session in which to ask the question.
+        Args:
+            session (AuxKnowSession): The session in which to ask the question.
+            question (str): The question to ask.
+
+        Returns:
+            AuxKnowAnswer: The answers object.
+        """
+        context_string = self._build_context_string(session.context)
+        return self.ask(question=question, context=context_string)
 
     def create_session(self) -> AuxKnowSession:
         """Create a new session and return the session object.
