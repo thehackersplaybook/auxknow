@@ -3,7 +3,7 @@ import traceback
 from pydantic import BaseModel
 from .printer import Printer
 from typing import Union
-from .constants import DEFAULT_AUXKNOW_SEARCH_VERBOSE
+from .constants import Constants
 
 
 class AuxKnowSearchItem(BaseModel):
@@ -24,18 +24,12 @@ class AuxKnowSearchResults(BaseModel):
     results: list[AuxKnowSearchItem]
 
 
-class CitationQueryGenerationResponse(BaseModel):
-    """
-    CitationQueryGenerationResponse: A simple Search Engine to enhance the capabilities of AuxKnow.
-    """
-
-
 class AuxKnowSearch:
     """
     AuxKnowSearch: A simple Search Engine to enhance the capabilities of AuxKnow.
     """
 
-    def __init__(self, verbose=DEFAULT_AUXKNOW_SEARCH_VERBOSE):
+    def __init__(self, verbose=Constants.DEFAULT_VERBOSE_ENABLED):
         """
         Initializes the AuxKnow Search Engine.
 
