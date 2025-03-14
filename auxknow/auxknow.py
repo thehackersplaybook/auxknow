@@ -16,7 +16,7 @@ from .constants import (
 )
 from dotenv import load_dotenv
 from copy import deepcopy
-from typing import Generator, Optional
+from typing import Generator, Optional, Union
 from uuid import uuid4
 import re
 
@@ -515,7 +515,9 @@ class AuxKnow:
             pass
         return citations
 
-    def ask(self, question: str, context: str = "") -> AuxKnowAnswer:
+    def ask(
+        self, question: str, context: str = "", for_citations=False
+    ) -> AuxKnowAnswer:
         """Ask a question to AuxKnow.
 
         Args:
@@ -533,7 +535,7 @@ class AuxKnow:
             if self.config.auto_model_routing:
                 model = self.__route_query_to_model(question)
 
-            if self.verbose:
+            if self.verbose and not for_citations:
                 Printer.print_yellow_message(
                     f"🧠 Asking question: '{question}' with model: '{model}'."
                 )
@@ -596,6 +598,9 @@ class AuxKnow:
             clean_answer = re.sub(r"\n{3,}", "\n\n", clean_answer)
 
             citations = self._extract_citations_from_response(response)
+
+            if len(citations) == 0:
+                citations, _ = self.get_citations(question, clean_answer)
 
             return AuxKnowAnswer(
                 answer=clean_answer,
@@ -741,6 +746,9 @@ class AuxKnow:
                 full_answer += buffer
                 yield AuxKnowAnswer(answer=buffer, citations=citations, is_final=False)
 
+            if len(citations) == 0:
+                citations, _ = self.get_citations(question, full_answer)
+
             yield AuxKnowAnswer(answer=full_answer, citations=citations, is_final=True)
         except Exception as e:
             Printer.print_red_message(f"Error while asking question: {e}.")
@@ -810,3 +818,32 @@ class AuxKnow:
             else:
                 break
         return context_string
+
+    def get_citations(
+        self, query: str, query_response: str
+    ) -> tuple[Union[list[str], None], str]:
+        """
+        Gets the citations for the given query and response.
+
+        Args:
+            llm (OpenAI): The Large Language model to generate metadata for citation generation.
+            query (str): The query to search for.
+            query_response (str): The response to the query.
+
+        Returns:
+            list[str]: The citations which is a list of URLs.
+        """
+        try:
+            question = f"""
+                Can you please generate a detailed list of citations for the given query and response?
+
+                Query: '''{query}'''
+                Response: '''{query_response}'''
+
+            """
+            response = self.ask(question, for_citations=True)
+            return response.citations, ""
+        except Exception as e:
+            if self.verbose:
+                Printer.print_red_message(f"Error while getting citations: {e}")
+            return [], str(e)
