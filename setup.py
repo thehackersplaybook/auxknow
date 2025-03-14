@@ -17,6 +17,8 @@ setup(
         "rich>=13.9.4",
         "openai>=1.59.9",
         "watchdog>=6.0.0",
+        "langchain-community>=0.3.14",
+        "duckduckgo_search>=7.5.2",
     ],
     author="Aditya Patange (AdiPat)",
     author_email="contact.adityapatange@gmail.com",
