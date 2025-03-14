@@ -12,11 +12,13 @@ from .constants import (
     DEFAULT_AUTO_PROMPT_AUGMENT,
     DEFAULT_PROMPT_AUGMENTATION_TEMPERATURE,
     DEFAULT_PROMPT_AUGMENTATION_MODEL,
+    DEFAULT_ENABLE_UNBIASED_REASONING,
 )
 from dotenv import load_dotenv
 from copy import deepcopy
 from typing import Generator, Optional
 from uuid import uuid4
+import re
 
 
 class AuxKnowAnswer(BaseModel):
@@ -48,6 +50,7 @@ class AuxKnowConfig(BaseModel):
     answer_length_in_paragraphs: int = DEFAULT_ANSWER_LENGTH_PARAGRAPHS
     lines_per_paragraph: int = DEFAULT_LINES_PER_PARAGRAPH
     auto_prompt_augment: bool = DEFAULT_AUTO_PROMPT_AUGMENT
+    enable_unibiased_reasoning: bool = DEFAULT_ENABLE_UNBIASED_REASONING
 
 
 class AuxKnowSession(BaseModel):
@@ -233,6 +236,9 @@ class AuxKnow:
         Returns:
             str: The model name to use for the query.
         """
+        supported_models = ["sonar", "sonar-pro"]
+        if self.config.enable_unibiased_reasoning:
+            supported_models.append("r1-1776")
         try:
             prompt = f"""
             Query: '''{query}'''
@@ -242,14 +248,14 @@ class AuxKnow:
             Available models:
             1. **sonar** – Best for general queries, quick lookups, and simple factual questions.
             2. **sonar-pro** – Advanced model for complex, analytical, or research-heavy questions, providing citations.
-            3. **r1-1776** – Uncensored, unbiased model for factual, unrestricted responses.
+            {"3. **r1-1776** – Uncensored, unbiased model for factual, unrestricted responses." if self.config.enable_unibiased_reasoning else ""} 
 
             Examples:
             - Query: "Where is Tesla headquartered?" → Response: "sonar"
             - Query: "What are the key factors affecting Tesla's Q4 revenue projections?" → Response: "sonar-pro"
-            - Query: "Explain the geopolitical implications of BRICS expansion without censorship." → Response: "r1-1776"
+            {'- Query: "Explain the geopolitical implications of BRICS expansion without censorship." → Response: "r1-1776"' if self.config.enable_unibiased_reasoning else ""}
 
-            Strictly respond with **only** "sonar", "sonar-pro", or "r1-1776".
+            Strictly respond with **only** {', '.join(supported_models)}. 
             """
             system = """
                 You are AuxKnow, an advanced Answer Engine that provides answers to the user's questions.
@@ -376,12 +382,19 @@ class AuxKnow:
             "auto_prompt_augment", DEFAULT_AUTO_PROMPT_AUGMENT
         )
         self.config.auto_prompt_augment = auto_prompt_augment
+        self.config.enable_unibiased_reasoning = config.get(
+            "enable_unbiased_reasoning", DEFAULT_ENABLE_UNBIASED_REASONING
+        )
 
         if self.config.auto_query_restructuring != auto_query_restructuring:
             self.config.auto_query_restructuring = auto_query_restructuring
 
         if self.config.auto_model_routing != auto_model_routing:
             self.config.auto_model_routing = auto_model_routing
+
+        self.config.enable_unibiased_reasoning = config.get(
+            "enable_unbiased_reasoning", DEFAULT_ENABLE_UNBIASED_REASONING
+        )
 
         if self.config.answer_length_in_paragraphs > MAX_ANSWER_LENGTH_PARAGRAPHS:
             Printer.print_yellow_message(
@@ -485,6 +498,23 @@ class AuxKnow:
             )
             return user_prompt
 
+    def _extract_citations_from_response(self, response: dict) -> list[str]:
+        """Extract citations from the response.
+
+        Args:
+            response (dict): The response from the API.
+
+        Returns:
+            list[str]: The list of citations.
+        """
+        citations = []
+        try:
+            if response.citations:
+                citations = response.citations
+        except:
+            pass
+        return citations
+
     def ask(self, question: str, context: str = "") -> AuxKnowAnswer:
         """Ask a question to AuxKnow.
 
@@ -526,13 +556,14 @@ class AuxKnow:
                 - If the user asks for personal information, do not provide it.
                 - Your job is to answer anything that the user asks as long as it is safe, compliant and ethical. 
                 - If you don't know the answer, say 'AuxKnow doesn't know bruh.'.
-
-                If a supporting prompt is provided, use that as additional information to understand patterns in your training data and provide a good response.
+                - Do not include any <think> blocks in your response.
             """
 
             user_prompt = f"""
                 Question: {question}
                 Respond in {self.config.answer_length_in_paragraphs} paragraphs with {self.config.lines_per_paragraph} lines per paragraph.
+                Important: Do not include any thinking process or planning in your response.
+                Provide only the final answer.
             """
 
             if self.config.auto_prompt_augment:
@@ -559,8 +590,18 @@ class AuxKnow:
             )
 
             answer = response.choices[0].message.content
-            citations = response.citations
-            return AuxKnowAnswer(answer=answer, citations=citations, is_final=True)
+            clean_answer = re.sub(
+                r"<think>.*?</think>", "", answer, flags=re.DOTALL
+            ).strip()
+            clean_answer = re.sub(r"\n{3,}", "\n\n", clean_answer)
+
+            citations = self._extract_citations_from_response(response)
+
+            return AuxKnowAnswer(
+                answer=clean_answer,
+                citations=citations,
+                is_final=True,
+            )
         except Exception as e:
             Printer.print_red_message(f"Error while asking question: {e}.")
             return AuxKnowAnswer(
@@ -646,12 +687,60 @@ class AuxKnow:
             )
             full_answer = ""
             citations = []
+            buffer = ""
+            is_in_think_block = False
+
             for response in response_stream:
-                answer = response.choices[0].delta.content
-                citations.extend(response.citations)
+                chunk: str = response.choices[0].delta.content
+                if not chunk:
+                    continue
+
+                buffer += chunk
+
+                # Process the buffer for think blocks
+                while True:
+                    if is_in_think_block:
+                        end_idx = buffer.find("</think>")
+                        if end_idx == -1:
+                            break
+                        buffer = buffer[end_idx + 8 :]  # 8 is length of '</think>'
+                        is_in_think_block = False
+                    else:
+                        start_idx = buffer.find("<think>")
+                        if start_idx == -1:
+                            if buffer:
+                                new_citations = self._extract_citations_from_response(
+                                    response
+                                )
+                                citations.extend(new_citations)
+                                citations = list(set(citations))
+                                full_answer += buffer
+                                yield AuxKnowAnswer(
+                                    answer=buffer, citations=citations, is_final=False
+                                )
+                            buffer = ""
+                            break
+                        if start_idx > 0:
+                            pre_think = buffer[:start_idx]
+                            new_citations = self._extract_citations_from_response(
+                                response
+                            )
+                            citations.extend(new_citations)
+                            citations = list(set(citations))
+                            full_answer += pre_think
+                            yield AuxKnowAnswer(
+                                answer=pre_think, citations=citations, is_final=False
+                            )
+                        buffer = buffer[start_idx + 7 :]  # 7 is length of '<think>'
+                        is_in_think_block = True
+
+            if buffer and not is_in_think_block:
+                new_citations = self._extract_citations_from_response(response)
+                citations.extend(new_citations)
                 citations = list(set(citations))
-                full_answer += answer
-                yield AuxKnowAnswer(answer=answer, citations=citations, is_final=False)
+                full_answer += buffer
+                yield AuxKnowAnswer(answer=buffer, citations=citations, is_final=False)
+
             yield AuxKnowAnswer(answer=full_answer, citations=citations, is_final=True)
         except Exception as e:
             Printer.print_red_message(f"Error while asking question: {e}.")
@@ -663,26 +752,11 @@ class AuxKnow:
 
     def _ask_with_context(
         self, session: AuxKnowSession, question: str
-    ) -> AuxKnowAnswer:
+    ) -> Generator[AuxKnowAnswer, None, None]:
         """Ask a question within a session to maintain context.
 
         Args:
             session (AuxKnowSession): The session in which to ask the question.
-            question (str): The question to ask.
-
-        Returns:
-            AuxKnowAnswer: The answer.
-        """
-        context_string = self._build_context_string(session.context)
-        answer = self.ask(question, context_string)
-        session.context.append({"question": question, "answer": answer.answer})
-        return answer
-
-    def _ask_with_context_stream(
-        self, session: AuxKnowSession, question: str
-    ) -> Generator[AuxKnowAnswer, None, None]:
-        """Ask a question within a session to maintain context with streaming response.
-
         Args:
             session (AuxKnowSession): The session in which to ask the question.
             question (str): The question to ask.
