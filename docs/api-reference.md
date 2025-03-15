@@ -35,7 +35,14 @@ The main entry point for interacting with AuxKnow. Use this to configure setting
 
 #### Initialization
 
-When initializing AuxKnow, you can optionally provide API keys for authentication and enable verbose logging for debugging purposes.
+When initializing AuxKnow, you can provide the following parameters:
+
+- `perplexity_api_key` (Optional[str]): The API key for Perplexity.
+- `api_key` (Optional[str]): Deprecated. Use perplexity_api_key instead.
+- `openai_api_key` (Optional[str]): The API key for OpenAI.
+- `verbose` (bool): Whether to enable verbose logging. Default: False
+- `auto_prompt_augment` (bool): Enable automatic prompt enhancement. Default: True
+- `performance_logging_enabled` (bool): Enable performance logging. Default: False
 
 #### Key Functionalities
 
@@ -45,10 +52,13 @@ Sends a query to AuxKnow for an answer. Queries can optionally include additiona
 
 **Inputs:**
 
-- `question`: The query string.
-- `context` (optional): Additional information to provide context.
-- `deep_research` (optional): Whether to enable deep research mode for more comprehensive responses (default: `False`).
-- `fast_mode` (optional): When enabled, overrides other settings to provide fastest possible response (default: `False`).
+- `question` (str): The query string.
+- `context` (str, optional): Additional information to provide context.
+- `for_citations` (bool, optional): Whether to optimize response for citation generation. Default: False
+- `deep_research` (bool, optional): Whether to enable deep research mode. Default: False
+- `fast_mode` (bool, optional): When enabled, overrides other settings for fastest response. Default: False
+- `get_context_callback` (Callable[[str], str], optional): Function to load context for the question.
+- `update_context_callback` (Callable[[str, AuxKnowAnswer], None], optional): Function to update context with the answer.
 
 **Outputs:**
 
@@ -137,14 +147,17 @@ Modify or retrieve the current settings for AuxKnow.
 
 **Inputs for `set_config`:**
 
-- A configuration object containing options such as:
+- A configuration dictionary containing options such as:
   - `auto_query_restructuring`: Enable automatic query improvement.
   - `auto_model_routing`: Enable automatic selection of the best model.
   - `answer_length_in_paragraphs`: Set the desired response length in paragraphs.
   - `lines_per_paragraph`: Define the number of lines per paragraph.
   - `auto_prompt_augment`: Enable or disable automatic prompt augmentation (default: `True`).
   - `enable_unbiased_reasoning`: Enable or disable unbiased reasoning mode (default: `True`).
-  - `fast_mode`: When enabled, overrides other settings to provide fastest possible response (default: `False`).
+  - `fast_mode`: When enabled, overrides other settings for fastest response (default: `False`).
+  - `performance_logging_enabled`: Enable or disable performance logging (default: `False`).
+
+**Note:** When setting `answer_length_in_paragraphs` and `lines_per_paragraph`, the values are automatically capped at their maximum limits. If exceeded, they default to their standard values with a warning message.
 
 **Outputs for `get_config`:**
 
@@ -160,7 +173,8 @@ config = {
     "lines_per_paragraph": 5,
     "auto_prompt_augment": False,  # Disable prompt augmentation
     "enable_unbiased_reasoning": False,  # Disable unbiased reasoning
-    "fast_mode": True  # Enable fast mode
+    "fast_mode": True,  # Enable fast mode
+    "performance_logging_enabled": True  # Enable performance logging
 }
 auxknow.set_config(config)
 current_config = auxknow.get_config()
@@ -201,6 +215,8 @@ AuxKnow sessions allow you to manage context and group queries logically. Sessio
 
 - Context management for related queries.
 - Seamless integration with AuxKnow’s query functionality.
+- Memory-based context storage and retrieval.
+- Automatic context pruning to maintain token limits.
 
 #### Key Functionalities
 
@@ -210,8 +226,11 @@ Send a query while maintaining the session’s context.
 
 **Inputs:**
 
-- `question`: The query string.
-- `deep_research` (optional): Enable deep research mode.
+- `question` (str): The query string.
+- `deep_research` (bool, optional): Enable deep research mode. Default: False.
+- `fast_mode` (bool, optional): When enabled, overrides other settings for fastest response. Default: False.
+- `get_context_callback` (Callable[[str], str], optional): Function to load context for the question.
+- `update_context_callback` (Callable[[str, AuxKnowAnswer], None], optional): Function to update context with the answer.
 
 **Outputs:**
 
@@ -293,12 +312,14 @@ AuxKnow’s configuration object defines global settings for query behavior and 
 
 #### Attributes
 
-- `auto_model_routing`: Automatically select the best model for queries.
-- `auto_query_restructuring`: Restructure queries for better results.
-- `answer_length_in_paragraphs`: Define the length of responses in paragraphs.
-- `lines_per_paragraph`: Specify the number of lines per paragraph in responses.
-- `enable_unbiased_reasoning`: Allow responses with unrestricted, factual reasoning (default: `True`).
-- `auto_prompt_augment`: Enable automatic prompt augmentation (default: `True`).
+- `auto_model_routing` (bool): Automatically select the best model for queries.
+- `auto_query_restructuring` (bool): Restructure queries for better results.
+- `answer_length_in_paragraphs` (int): Define the length of responses in paragraphs.
+- `lines_per_paragraph` (int): Specify the number of lines per paragraph in responses.
+- `enable_unbiased_reasoning` (bool): Allow responses with unrestricted, factual reasoning (default: `True`).
+- `auto_prompt_augment` (bool): Enable automatic prompt augmentation (default: `True`).
+- `fast_mode` (bool): When True, optimizes for speed over quality (default: `False`).
+- `performance_logging_enabled` (bool): Enable performance metrics logging (default: `False`).
 
 **Example Usage:**
 
@@ -309,7 +330,8 @@ config = AuxKnowConfig(
     answer_length_in_paragraphs=3,
     lines_per_paragraph=5,
     enable_unbiased_reasoning=False,  # Change setting
-    auto_prompt_augment=False  # Change setting
+    auto_prompt_augment=False,  # Change setting
+    performance_logging_enabled=True  # Enable performance logging
 )
 print(config.auto_model_routing)
 ```

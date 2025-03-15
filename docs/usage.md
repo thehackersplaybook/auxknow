@@ -12,12 +12,22 @@ The basic mode sends a query to AuxKnow and retrieves a response.
 from auxknow import AuxKnow
 
 # Initialize the AuxKnow instance
-auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
+auxknow = AuxKnow(
+    perplexity_api_key="your_api_key",  # Required
+    openai_api_key="your_openai_api_key",  # Required
+    verbose=True,  # Optional, default: False
+    auto_prompt_augment=True,  # Optional, default: False
+    performance_logging_enabled=False  # Optional, default: False
+)
 
 # Ask a question
-response = auxknow.ask("What is the theory of evolution?")
+response = auxknow.ask(
+    question="What is the theory of evolution?",
+    context="",  # Optional context
+    deep_research=False,  # Optional, enables in-depth research mode
+    fast_mode=False  # Optional, prioritizes speed over quality
+)
 
-# Print the answer
 print("Answer:", response.answer)
 print("Citations:", response.citations)
 ```
@@ -70,7 +80,7 @@ You can customize AuxKnow's behavior by setting specific configurations.
 from auxknow import AuxKnow
 
 # Initialize the AuxKnow instance
-auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
+auxknow = AuxKnow(perplexity_api_key="your_api_key", openai_api_key="your_openai_api_key")
 
 # Define a custom configuration
 task_config = {
@@ -79,7 +89,9 @@ task_config = {
     "answer_length_in_paragraphs": 3,
     "lines_per_paragraph": 5,
     "auto_prompt_augment": True,
-    "enable_unbiased_reasoning": False
+    "enable_unbiased_reasoning": False,
+    "fast_mode": False,
+    "performance_logging_enabled": False
 }
 
 # Apply the configuration
