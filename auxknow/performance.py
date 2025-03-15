@@ -1,11 +1,7 @@
-from functools import wraps
 import time
-from typing import Any, Callable, TypeVar, ParamSpec, cast
+import functools
 from .printer import Printer
 from enum import Enum
-
-P = ParamSpec("P")
-R = TypeVar("R")
 
 
 class TimeUnit(Enum):
@@ -18,7 +14,15 @@ class TimeUnit(Enum):
 
 
 def _convert_time(seconds: float, unit: TimeUnit) -> float:
-    """Convert time from seconds to specified unit"""
+    """Convert time from seconds to specified unit
+
+    Args:
+        seconds (float): Time in seconds
+        unit (TimeUnit): The unit to convert to
+
+    Returns:
+        float: Time in specified unit
+    """
     conversions = {
         TimeUnit.NANOSECONDS: 1e9,
         TimeUnit.MICROSECONDS: 1e6,
@@ -28,38 +32,32 @@ def _convert_time(seconds: float, unit: TimeUnit) -> float:
     return seconds * conversions[unit]
 
 
-def log_performance(
-    enabled: bool = False,
-    unit: TimeUnit = TimeUnit.MILLISECONDS,
-) -> Callable[[Callable[P, R]], Callable[P, R]]:
-    """
-    A decorator that logs the execution time of functions when enabled.
+def log_performance(enabled=lambda self: False, unit: TimeUnit = TimeUnit.MILLISECONDS):
+    """Decorator to log performance of functions.
 
     Args:
-        enabled (bool): Flag to enable/disable performance logging
-        unit (TimeUnit): Time unit for logging (default: milliseconds)
-
-    Returns:
-        Callable: The decorated function
+        enabled (callable): A function that takes self and returns bool indicating if logging is enabled
+        unit (TimeUnit): The unit to display the time in (default: milliseconds)
     """
 
-    def decorator(func: Callable[P, R]) -> Callable[P, R]:
-        @wraps(func)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            if not enabled:
-                return func(*args, **kwargs)
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            if not enabled(self) or not self.config.performance_logging_enabled:
+                return func(self, *args, **kwargs)
 
-            start_time = time.perf_counter()
-            result = func(*args, **kwargs)
-            end_time = time.perf_counter()
+            start_time = time.time()
+            result = func(self, *args, **kwargs)
 
-            execution_time = _convert_time(end_time - start_time, unit)
-            Printer.print_light_grey_message(
-                f"⚡ Performance: {func.__name__} took {execution_time:.2f}{unit.value}"
-            )
+            if self.config.performance_logging_enabled:
+                end_time = time.time()
+                duration = _convert_time(end_time - start_time, unit)
+                Printer.print_yellow_message(
+                    f"⚡ Performance: {func.__name__} took {duration:.2f}{unit.value}"
+                )
 
             return result
 
-        return cast(Callable[P, R], wrapper)
+        return wrapper
 
     return decorator

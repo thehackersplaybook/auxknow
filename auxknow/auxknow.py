@@ -264,9 +264,7 @@ class AuxKnow:
                 perplexity_api_key = api_key
 
         self.verbose = verbose
-        self.config = AuxKnowConfig(
-            performance_logging_enabled=performance_logging_enabled
-        )
+        self.config = AuxKnowConfig()
         self.sessions = {}
 
         Printer.verbose_logger(
@@ -301,6 +299,18 @@ class AuxKnow:
             return
 
         self.openai_api_key = openai_api_key
+
+        self.config.performance_logging_enabled = performance_logging_enabled
+
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_yellow_message,
+            (
+                "⏲ Performance logging enabled!"
+                if self.config.performance_logging_enabled
+                else "⏲ Performance logging disabled."
+            ),
+        )
 
         self.config.auto_prompt_augment = (
             auto_prompt_augment or self.config.auto_prompt_augment
