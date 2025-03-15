@@ -8,5 +8,5 @@ warnings.filterwarnings(
     module="pydantic.main",
 )
 
-__version__ = "0.0.13"
+__version__ = "0.0.14"
 __all__ = ["AuxKnow", "AuxKnowConfig", "AuxKnowAnswer", "AuxKnowSession"]

@@ -2,6 +2,8 @@
 
 
 class Constants:
+    AUXKNOW_VERSION = "v0.0.14"
+
     # Library Constants
     ARBITRARY_TYPES_ALLOWED = True
 

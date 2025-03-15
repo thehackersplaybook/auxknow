@@ -1030,3 +1030,11 @@ class AuxKnow:
             if self.verbose:
                 Printer.print_red_message(f"Error while getting citations: {e}")
             return [], str(e)
+
+    def version(self) -> str:
+        """Get the version of AuxKnow.
+
+        Returns:
+            str: The version of AuxKnow.
+        """
+        return Constants.AUXKNOW_VERSION
