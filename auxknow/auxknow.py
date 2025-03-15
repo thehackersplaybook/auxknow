@@ -566,7 +566,15 @@ class AuxKnow:
         """Set the configuration for AuxKnow.
 
         Args:
-            config (dict): The configuration dictionary.
+            config (dict): A configuration dictionary containing options such as:
+            - auto_query_restructuring (bool): Enable automatic query improvement.
+            - auto_model_routing (bool): Enable automatic selection of the best model.
+            - answer_length_in_paragraphs (int): Set the desired response length in paragraphs.
+            - lines_per_paragraph (int): Define the number of lines per paragraph.
+            - auto_prompt_augment (bool): Enable or disable automatic prompt augmentation (default: `True`).
+            - enable_unbiased_reasoning (int): Enable or disable unbiased reasoning mode (default: `True`).
+            - fast_mode (bool): When enabled, overrides other settings for fastest response (default: `False`).
+            - performance_logging_enabled (bool): Enable or disable performance logging (default: `False`).
         """
         answer_length_in_paragraphs = config.get("answer_length_in_paragraphs")
         auto_query_restructuring = config.get("auto_query_restructuring")
