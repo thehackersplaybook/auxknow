@@ -22,6 +22,7 @@ import re
 from .auxknow_memory import AuxKnowMemory
 from collections.abc import Callable
 import warnings
+from .performance import log_performance
 
 
 class AuxKnowAnswer(BaseModel):
@@ -57,6 +58,7 @@ class AuxKnowConfig(BaseModel):
         auto_prompt_augment (bool): Controls automatic prompt enhancement.
         enable_unibiased_reasoning (bool): Enables unbiased reasoning mode.
         fast_mode (bool): When True, optimizes for speed over quality.
+        performance_logging_enabled (bool): Enables performance logging.
     """
 
     auto_model_routing: bool = Constants.DEFAULT_AUTO_MODEL_ROUTING_ENABLED
@@ -66,6 +68,7 @@ class AuxKnowConfig(BaseModel):
     auto_prompt_augment: bool = Constants.DEFAULT_AUTO_PROMPT_AUGMENT
     enable_unibiased_reasoning: bool = Constants.DEFAULT_ENABLE_UNBIASED_REASONING
     fast_mode: bool = Constants.DEFAULT_FAST_MODE_ENABLED
+    performance_logging_enabled: bool = Constants.DEFAULT_PERFORMANCE_LOGGING_ENABLED
 
 
 class AuxKnowSession(BaseModel):
@@ -240,6 +243,7 @@ class AuxKnow:
         openai_api_key: Optional[str] = None,
         verbose: bool = Constants.DEFAULT_VERBOSE_ENABLED,
         auto_prompt_augment: bool = Constants.DEFAULT_AUTO_PROMPT_AUGMENT,
+        performance_logging_enabled: bool = False,
     ):
         """Initialize the AuxKnow instance.
 
@@ -248,6 +252,7 @@ class AuxKnow:
             api_key (Optional[str]): Deprecated. Use perplexity_api_key instead.
             openai_api_key (Optional[str]): The API key for OpenAI.
             verbose (bool): Whether to enable verbose logging.
+            performance_logging_enabled (bool): Whether to enable performance logging.
         """
         if api_key is not None:
             warnings.warn(
@@ -259,7 +264,9 @@ class AuxKnow:
                 perplexity_api_key = api_key
 
         self.verbose = verbose
-        self.config = AuxKnowConfig()
+        self.config = AuxKnowConfig(
+            performance_logging_enabled=performance_logging_enabled
+        )
         self.sessions = {}
 
         if self.verbose:
@@ -328,6 +335,7 @@ class AuxKnow:
         elif not dotenv_loaded and self.verbose:
             Printer.print_red_message("🌴 Environment variables not loaded.")
 
+    @log_performance(enabled=lambda self: self.config.performance_logging_enabled)
     def __restructure_query(self, query: str) -> str:
         """Restructure the query so that it's fine-tuned enough to return a better quality answer.
 
@@ -366,6 +374,7 @@ class AuxKnow:
             )
             return query
 
+    @log_performance(enabled=lambda self: self.config.performance_logging_enabled)
     def __route_query_to_model(self, query: str) -> str:
         """Route the query to the appropriate model based on the query.
 
@@ -429,6 +438,7 @@ class AuxKnow:
             )
             return Constants.MODEL_SONAR
 
+    @log_performance(enabled=lambda self: self.config.performance_logging_enabled)
     def __ping_test_llm(self) -> bool:
         """Perform a ping test on the LLM API.
 
@@ -465,6 +475,7 @@ class AuxKnow:
             )
             return False
 
+    @log_performance(enabled=lambda self: self.config.performance_logging_enabled)
     def _ping_test(self) -> bool:
         """Perform a ping test to check API connectivity.
 
@@ -526,6 +537,10 @@ class AuxKnow:
             "enable_unbiased_reasoning", Constants.DEFAULT_ENABLE_UNBIASED_REASONING
         )
         self.config.fast_mode = config.get("fast_mode", False)
+        performance_logging_enabled = config.get(
+            "performance_logging_enabled", Constants.DEFAULT_PERFORMANCE_LOGGING_ENABLED
+        )
+        self.config.performance_logging_enabled = performance_logging_enabled
 
         if self.config.auto_query_restructuring != auto_query_restructuring:
             self.config.auto_query_restructuring = auto_query_restructuring
@@ -568,6 +583,7 @@ class AuxKnow:
             self.config = AuxKnowConfig()
         return deepcopy(self.config)
 
+    @log_performance(enabled=lambda self: self.config.performance_logging_enabled)
     def _get_prompt_augmentation_segment(self, question: str, context: str = "") -> str:
         """
         Augments the prompt and returnes the supporting prompt.
@@ -590,11 +606,7 @@ class AuxKnow:
 
                 The supporting prompt should be structured in a way that is easy to read and understand, with clear 
                 headings and subheadings to organize the information. It should also be written in a way that is 
-                easy to follow and understand, with clear and concise language that is easy to understand.
-
-                The supporting prompt should be written in a way that is easy to read and understand, with clear 
-                headings and subheadings to organize the information. It should also be written in a way that is 
-                easy to follow and understand, with clear and concise language that is easy to understand.   
+                easy to follow and understand, with clear and concise language that is easy to understand.  
 
                 We are giving you the prompt / question and context to provide the best, most factual and comprhensive response.
 
@@ -610,11 +622,17 @@ class AuxKnow:
                 ],
                 temperature=Constants.DEFAULT_PROMPT_AUGMENTATION_TEMPERATURE,
             )
-            return response.choices[0].message.content
-        except:
+            updated_prompt = response.choices[0].message.content
+            if self.verbose:
+                Printer.print_yellow_message(
+                    f"Prompt augmentation segment: '{updated_prompt}' "
+                )
+            return updated_prompt
+        except Exception as e:
             Printer.print_red_message(
-                "Error while getting prompt augmentation segment. Returning empty string."
+                f"Error while getting prompt augmentation segment: {str(e)}"
             )
+
             return ""
 
     def _augment_prompt(self, user_prompt: str, augmentation_segment: str) -> str:
@@ -629,7 +647,7 @@ class AuxKnow:
             str: The augmented prompt.
         """
         try:
-            if augmentation_segment.strip() == "":
+            if not augmentation_segment or augmentation_segment.strip() == "":
                 return user_prompt
             augmented_prompt = f"""
                 {user_prompt}
@@ -707,6 +725,7 @@ class AuxKnow:
                 {"Context: " + context if context and context.strip() != "" else ""}
             """
 
+    @log_performance(enabled=lambda self: self.config.performance_logging_enabled)
     def ask(
         self,
         question: str,
@@ -820,6 +839,7 @@ class AuxKnow:
                 is_final=True,
             )
 
+    @log_performance(enabled=lambda self: self.config.performance_logging_enabled)
     def ask_stream(
         self,
         question: str,

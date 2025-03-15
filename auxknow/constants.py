@@ -70,6 +70,7 @@ class Constants:
     DEFAULT_SEARCH_VERBOSE = False
     DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED = False
     UNINITIALIZED_ANSWER = "AuxKnow API not initialized. Cannot ask questions."
+    DEFAULT_PERFORMANCE_LOGGING_ENABLED = False
 
     # Temperature Settings
     DEFAULT_PROMPT_AUGMENTATION_TEMPERATURE = (
