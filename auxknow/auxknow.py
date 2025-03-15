@@ -93,20 +93,6 @@ class AuxKnowSession(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=Constants.ARBITRARY_TYPES_ALLOWED)
 
-    # def __init__(self, auxknow: "AuxKnow", session_id: str = str(uuid4())):
-    #     super().__init__(session_id=session_id, auxknow=auxknow)
-    #     try:
-    #         self.memory = AuxKnowMemory(
-    #             session_id=session_id,
-    #             verbose=auxknow.verbose,
-    #             openai_api_key=auxknow.openai_api_key,
-    #         )
-    #     except Exception as e:
-    #         Printer.print_red_message(
-    #             f"Error while initializing memory for session with Session ID [{session_id}]: {str(e)}"
-    #         )
-    #         self.memory = None
-
     @classmethod
     def create_session(
         cls, auxknow: "AuxKnow", session_id: str = str(uuid4())
