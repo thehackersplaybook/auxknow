@@ -7,6 +7,7 @@ markdownify>=0.14.1
 rich>=13.9.4
 openai>=1.59.9
 watchdog>=6.0.0
-langchain==0.3.14
+langchain>=0.3.14
+langchain-core>=0.3.29
 langchain-community>=0.3.14
 duckduckgo_search>=7.5.2
