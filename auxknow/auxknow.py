@@ -19,6 +19,8 @@ from copy import deepcopy
 from typing import Generator, Optional, Union
 from uuid import uuid4
 import re
+from .auxknow_memory import AuxKnowMemory
+from collections.abc import Callable
 
 
 class AuxKnowAnswer(BaseModel):
@@ -84,17 +86,83 @@ class AuxKnowSession(BaseModel):
     """
 
     session_id: str
-    context: list[dict[str, str]] = []
     auxknow: "AuxKnow"
+    memory: AuxKnowMemory
     closed: bool = Constants.DEFAULT_SESSION_CLOSED_STATUS
 
     model_config = ConfigDict(arbitrary_types_allowed=Constants.ARBITRARY_TYPES_ALLOWED)
+
+    # def __init__(self, auxknow: "AuxKnow", session_id: str = str(uuid4())):
+    #     super().__init__(session_id=session_id, auxknow=auxknow)
+    #     try:
+    #         self.memory = AuxKnowMemory(
+    #             session_id=session_id,
+    #             verbose=auxknow.verbose,
+    #             openai_api_key=auxknow.openai_api_key,
+    #         )
+    #     except Exception as e:
+    #         Printer.print_red_message(
+    #             f"Error while initializing memory for session with Session ID [{session_id}]: {str(e)}"
+    #         )
+    #         self.memory = None
+
+    @classmethod
+    def create_session(
+        cls, auxknow: "AuxKnow", session_id: str = str(uuid4())
+    ) -> "AuxKnowSession":
+        """Create a new conversation session.
+
+        Args:
+            auxknow (AuxKnow): Parent AuxKnow instance.
+
+        Returns:
+            AuxKnowSession: New session instance.
+        """
+        memory = AuxKnowMemory(
+            session_id=session_id,
+            verbose=auxknow.verbose,
+            openai_api_key=auxknow.openai_api_key,
+        )
+        return cls(auxknow=auxknow, session_id=session_id, memory=memory)
+
+    def _load_context(self, question) -> str:
+        """Load the context for a given question.
+
+        Args:
+            question (str): The question to load the context for.
+
+        Returns:
+            str: The context for the question.
+        """
+        try:
+            if not self.memory:
+                return ""
+            return self.memory.lookup(question)
+        except:
+            return ""
+
+    def _update_context(self, question: str, response: AuxKnowAnswer) -> None:
+        """Update the context with a new Q&A pair.
+
+        Args:
+            question (str): The question.
+            answer (str): The answer.
+        """
+        try:
+            if not self.memory:
+                return
+            memory_packet = f"{question}\n{response.answer}\nCitations: {"\n - ".join(response.citations)}"
+            self.memory.update_memory(data=memory_packet)
+        except:
+            return
 
     def ask(
         self,
         question: str,
         deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
         fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
+        get_context_callback: Callable[[str], str] = None,
+        update_context_callback: Callable[[str, AuxKnowAnswer], None] = None,
     ) -> AuxKnowAnswer:
         """Ask a question within this session to maintain context.
 
@@ -102,14 +170,27 @@ class AuxKnowSession(BaseModel):
             question (str): The question to ask.
             deep_research (bool): Whether to enable deep research mode. (Default: False)
             fast_mode (bool): When True, overrides other settings for fastest response.
+            get_context_callback (Callable[[str], str]): Callback to load context for the question.
+            update_context_callback (Callable[[str, AuxKnowAnswer], None]): Callback to update context with the answer.
 
         Returns:
             AuxKnowAnswer: The answer.
         """
         if self.closed:
             raise ValueError("Cannot ask a question on a closed session.")
-        return self.auxknow._ask_with_context(
-            self, question, deep_research=deep_research, fast_mode=fast_mode
+
+        if not get_context_callback:
+            get_context_callback = lambda q: self._load_context(q)
+
+        if not update_context_callback:
+            update_context_callback = lambda q, r: self._update_context(q, r)
+
+        return self.auxknow.ask(
+            question=question,
+            deep_research=deep_research,
+            fast_mode=fast_mode,
+            get_context_callback=get_context_callback,
+            update_context_callback=update_context_callback,
         )
 
     def ask_stream(
@@ -117,6 +198,8 @@ class AuxKnowSession(BaseModel):
         question: str,
         deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
         fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
+        get_context_callback: Callable[[str], str] = None,
+        update_context_callback: Callable[[str, AuxKnowAnswer], None] = None,
     ) -> Generator[AuxKnowAnswer, None, None]:
         """Ask a question within this session to maintain context with streaming response.
 
@@ -130,13 +213,28 @@ class AuxKnowSession(BaseModel):
         """
         if self.closed:
             raise ValueError(Constants.ERROR_CLOSED_SESSION)
-        return self.auxknow._ask_with_context_stream(
-            self, question, deep_research=deep_research, fast_mode=fast_mode
+
+        if not get_context_callback:
+            get_context_callback = lambda q: self._load_context(q)
+
+        if not update_context_callback:
+            update_context_callback = lambda q, r: self._update_context(q, r)
+
+        return self.auxknow.ask_stream(
+            question=question,
+            deep_research=deep_research,
+            fast_mode=fast_mode,
+            get_context_callback=get_context_callback,
+            update_context_callback=update_context_callback,
         )
 
     def close(self) -> None:
         """Close the session."""
         self.auxknow._close_session(self)
+
+
+class AuxKnowSessionContainer(BaseModel):
+    session: AuxKnowSession
 
 
 class AuxKnow:
@@ -164,6 +262,7 @@ class AuxKnow:
         """
         self.verbose = verbose
         self.config = AuxKnowConfig()
+        self.sessions = {}
 
         if self.verbose:
             Printer.print_orange_message("🧠 Initializing AuxKnow API! 🤯")
@@ -191,6 +290,8 @@ class AuxKnow:
             )
             return
 
+        self.openai_api_key = openai_api_key
+
         self.config.auto_prompt_augment = (
             auto_prompt_augment or self.config.auto_prompt_augment
         )
@@ -210,7 +311,7 @@ class AuxKnow:
         if self.verbose:
             self._print_initialization_status()
 
-        self.sessions = {}
+        self.sessions: dict[str, AuxKnowSessionContainer] = {}
 
     def __load_environment_variables(self) -> None:
         """Load the environment variables."""
@@ -615,6 +716,8 @@ class AuxKnow:
         for_citations=Constants.DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED,
         deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
         fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
+        get_context_callback: Callable[[str], str] = None,
+        update_context_callback: Callable[[str, AuxKnowAnswer], None] = None,
     ) -> AuxKnowAnswer:
         """Ask a question to AuxKnow.
 
@@ -628,6 +731,15 @@ class AuxKnow:
             AuxKnowAnswer: The answer.
         """
         try:
+            if not context and get_context_callback:
+                context = get_context_callback(question)
+
+            if context and get_context_callback:
+                if self.verbose:
+                    Printer.print_light_grey_message(
+                        f"Context and get context callback both provided, defaulting to provided context. "
+                    )
+
             if self.config.fast_mode:
                 fast_mode = True
 
@@ -692,11 +804,16 @@ class AuxKnow:
             if len(citations) == 0:
                 citations, _ = self.get_citations(question, clean_answer)
 
-            return AuxKnowAnswer(
+            final_answer = AuxKnowAnswer(
                 answer=clean_answer,
                 citations=citations,
                 is_final=True,
             )
+
+            if update_context_callback:
+                update_context_callback(question, final_answer)
+
+            return final_answer
         except Exception as e:
             Printer.print_red_message(f"Error while asking question: {e}.")
             return AuxKnowAnswer(
@@ -711,6 +828,8 @@ class AuxKnow:
         context: str = Constants.EMPTY_CONTEXT,
         deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
         fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
+        get_context_callback: Callable[[str], str] = None,
+        update_context_callback: Callable[[str, AuxKnowAnswer], None] = None,
     ) -> Generator[AuxKnowAnswer, None, None]:
         """Ask a question to AuxKnow with streaming response.
 
@@ -724,6 +843,14 @@ class AuxKnow:
             Generator[AuxKnowAnswer, None, None]: A generator of answers.
         """
         try:
+            if not context and get_context_callback:
+                context = get_context_callback(question)
+
+            if context and get_context_callback:
+                if self.verbose:
+                    Printer.print_light_grey_message(
+                        f"Context and get context callback both provided, defaulting to provided context. "
+                    )
             if not fast_mode and self.config.auto_query_restructuring:
                 question = self.__restructure_query(question)
 
@@ -826,11 +953,16 @@ class AuxKnow:
             if len(citations) == 0:
                 citations, _ = self.get_citations(question, full_answer)
 
-            yield AuxKnowAnswer(
+            final_answer = AuxKnowAnswer(
                 answer=full_answer,
                 citations=citations,
                 is_final=True,
             )
+
+            if update_context_callback:
+                update_context_callback(question, final_answer)
+
+            yield final_answer
         except Exception as e:
             Printer.print_red_message(f"Error while asking question: {e}.")
             yield AuxKnowAnswer(
@@ -839,62 +971,6 @@ class AuxKnow:
                 is_final=True,
             )
 
-    def _ask_with_context_stream(
-        self,
-        session: AuxKnowSession,
-        question: str,
-        deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
-        fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
-    ) -> Generator[AuxKnowAnswer, None, None]:
-        """Ask a question within a session to maintain context with streaming.
-
-        Args:
-            session (AuxKnowSession): The session in which to ask the question.
-            question (str): The question to ask.
-            deep_research (bool): Whether deep research mode is enabled.
-            fast_mode (bool): When True, overrides other settings for fastest response.
-
-        Returns:
-            Generator[AuxKnowAnswer, None, None]: A generator of answers.
-        """
-        context_string = self._build_context_string(session.context)
-        answer_stream = self.ask_stream(
-            question, context_string, deep_research=deep_research, fast_mode=fast_mode
-        )
-        for partial_answer in answer_stream:
-            session.context.append(
-                {"question": question, "answer": partial_answer.answer}
-            )
-            yield partial_answer
-
-    def _ask_with_context(
-        self,
-        session: AuxKnowSession,
-        question: str,
-        deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
-        fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
-    ) -> AuxKnowAnswer:
-        """Ask a question within a session to maintain context.
-
-        Args:
-            session (AuxKnowSession): The session in which to ask the question.
-        Args:
-            session (AuxKnowSession): The session in which to ask the question.
-            question (str): The question to ask.
-            deep_research (bool): Whether deep research mode is enabled.
-            fast_mode (bool): When True, overrides other settings for fastest response.
-
-        Returns:
-            AuxKnowAnswer: The answers object.
-        """
-        context_string = self._build_context_string(session.context)
-        return self.ask(
-            question=question,
-            context=context_string,
-            deep_research=deep_research,
-            fast_mode=fast_mode,
-        )
-
     def create_session(self) -> AuxKnowSession:
         """Create a new session and return the session object.
 
@@ -902,9 +978,22 @@ class AuxKnow:
             AuxKnowSession: The created session.
         """
         session_id = str(uuid4())
-        session = AuxKnowSession(session_id=session_id, auxknow=self)
-        self.sessions[session_id] = session
+        session = AuxKnowSession.create_session(session_id=session_id, auxknow=self)
+        self.sessions[session_id] = AuxKnowSessionContainer(session=session)
         return session
+
+    def get_session(self, session_id: str) -> Union[AuxKnowSession, None]:
+        """
+        Retrieve the session object for the given session ID.
+
+        Args:
+            session_id (str): The session ID.
+
+        Returns:
+            AuxKnowSession: The session object.
+        """
+        session_container = self.sessions.get(session_id, None)
+        return session_container.session
 
     def _close_session(self, session: AuxKnowSession) -> None:
         """Mark the session as closed.
@@ -915,27 +1004,6 @@ class AuxKnow:
         session.closed = True
         if session.session_id in self.sessions:
             del self.sessions[session.session_id]
-
-    def _build_context_string(self, context: list[dict[str, str]]) -> str:
-        """Build the context string from the list of question-answer pairs.
-
-        Args:
-            context (list[dict[str, str]]): The list of question-answer pairs.
-
-        Returns:
-            str: The context string.
-        """
-        context_string = ""
-        for qa in context[-Constants.MAX_RECENT_CONTEXT_PAIRS :]:
-            qa_string = f"Q: {qa['question']}\nA: {qa['answer']}\n"
-            if (
-                len((context_string + qa_string).split())
-                <= Constants.MAX_CONTEXT_TOKENS
-            ):
-                context_string += qa_string
-            else:
-                break
-        return context_string
 
     def get_citations(
         self, query: str, query_response: str

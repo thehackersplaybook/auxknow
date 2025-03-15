@@ -74,6 +74,9 @@ class Constants:
         OPTIMIZATION_CONSTANT * PROMPT_AUGMENTATION_FACTOR
     )
 
+    # Memory Settings
+    DEFAULT_MEMORY_RETRIEVAL_COUNT = 5
+
     # System Prompts
     DEFAULT_AUXKNOW_SYSTEM_PROMPT = """
         You are AuxKnow, an advanced Answer Engine that provides answers to the user's questions.
@@ -86,6 +89,7 @@ class Constants:
         - Don't provide responses titled with "Paragraph 1", "Paragraph 2", if you want to put titles, put appropriate titles.
     """
 
+    # Ping Test Constants
     PING_TEST_SYSTEM_PROMPT = (
         "This is a simple PING test to check the API, respond with PONG."
     )
