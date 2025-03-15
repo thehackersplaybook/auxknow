@@ -65,25 +65,28 @@ class AuxKnowMemory:
             openai_api_key = os.getenv("OPENAI_API_KEY")
 
         if not openai_api_key:
-            if self.verbose:
-                Printer.print_red_message(
-                    f"OpenAI API key not provided or set in environment variables for memory module for Session ID [{self.session_id}]."
-                )
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_red_message,
+                f"OpenAI API key not provided or set in environment variables for memory module for Session ID [{self.session_id}].",
+            )
             raise SystemError(
                 "OpenAI API key not provided or set in environment variables."
             )
 
-        if self.verbose:
-            Printer.print_blue_message(
-                f"🧠 Initializing the AuxKnow Memory Module with Session ID: {session_id}..."
-            )
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_blue_message,
+            f"🧠 Initializing the AuxKnow Memory Module with Session ID: {session_id}...",
+        )
 
         self.store = InMemoryVectorStore(OpenAIEmbeddings(api_key=openai_api_key))
 
-        if self.verbose:
-            Printer.print_green_message(
-                f"🧠 Initialized the AuxKnow Memory Module with Session ID: {session_id}! 🚀"
-            )
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_green_message,
+            f"🧠 Initialized the AuxKnow Memory Module with Session ID: {session_id}! 🚀",
+        )
 
     def update_memory(self, data: str, id: str = str(uuid4())):
         """
@@ -95,10 +98,11 @@ class AuxKnowMemory:
         try:
             document = Document(id=id, page_content=data)
             self.store.add_documents([document])
-            if self.verbose:
-                Printer.print_green_message(
-                    f"🧠 Updated memory with data of {len(data)} tokens for Session ID [{self.session_id}]."
-                )
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_green_message,
+                f"🧠 Updated memory with data of {len(data)} tokens for Session ID [{self.session_id}].",
+            )
         except Exception as e:
             Printer.print_red_message(
                 f"Error updating memory with data of {len(data)} tokens for Session ID [{self.session_id}]."
@@ -119,10 +123,11 @@ class AuxKnowMemory:
             List[str]: The top K results for the query
         """
         try:
-            if self.verbose:
-                Printer.print_blue_message(
-                    f"🧠 Looking up memory for query: {query} for Session ID [{self.session_id}]."
-                )
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_blue_message,
+                f"🧠 Looking up memory for query: {query} for Session ID [{self.session_id}].",
+            )
             documents = self.store.similarity_search(query=query, k=n)
             memory_lookup_results = ""
             for document in documents:
