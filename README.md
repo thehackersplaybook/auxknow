@@ -103,6 +103,13 @@ AuxKnow is designed to cater to a wide range of scenarios, including:
 
 # Changelog
 
+## 🚀 v0.0.15 - Performance Logging
+
+- 🎯 Added `enable_performance_logging` configuration with configurable time units for performance logging.
+- 🎯 Enhanced design of verbose logging across the codebase.
+
+---
+
 ## 🚀 v0.0.14 - Improved Memory Management
 
 - 🎯 Improved memory management in sessions.
