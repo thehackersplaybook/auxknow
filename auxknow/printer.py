@@ -213,6 +213,18 @@ class Printer:
     """Printer class for printing messages."""
 
     @staticmethod
+    def verbose_logger(verbose: bool, print_method: callable, message: str):
+        """Execute a print method only if verbose is True and message is not empty.
+
+        Args:
+            verbose (bool): Whether to print the message
+            print_method (callable): The print method to call
+            message (str): The message to print
+        """
+        if verbose and message and message.strip():
+            print_method(message)
+
+    @staticmethod
     def print_message(message: str, color: PrinterColor = PrinterColor.DEFAULT):
         """Print a message with a color."""
         rprint(f"[{color.value}]{message}[/{color.value}]")

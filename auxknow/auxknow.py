@@ -269,11 +269,16 @@ class AuxKnow:
         )
         self.sessions = {}
 
-        if self.verbose:
-            Printer.print_orange_message("🧠 Initializing AuxKnow API! 🤯")
-
-        if self.verbose:
-            Printer.print_light_grey_message("🌴 Loading environment variables... ")
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_orange_message,
+            "🧠 Initializing AuxKnow API! 🤯",
+        )
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_light_grey_message,
+            "🌴 Loading environment variables... ",
+        )
 
         self.__load_environment_variables()
 
@@ -301,8 +306,15 @@ class AuxKnow:
             auto_prompt_augment or self.config.auto_prompt_augment
         )
 
-        if self.config.auto_prompt_augment and self.verbose:
-            Printer.print_yellow_message("🔥 Prompt Augmentation enabled!")
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_yellow_message,
+            (
+                "🔥 Prompt Augmentation enabled!"
+                if self.config.auto_prompt_augment
+                else ""
+            ),
+        )
 
         self.llm = OpenAI(api_key=openai_api_key)
         llm_initialized = self.__ping_test_llm()
@@ -313,8 +325,7 @@ class AuxKnow:
         self.initialized = self._ping_test()
         self.initialized = self.initialized and llm_initialized
 
-        if self.verbose:
-            self._print_initialization_status()
+        self._print_initialization_status()
 
         self.sessions: dict[str, AuxKnowSessionContainer] = {}
 
@@ -323,17 +334,26 @@ class AuxKnow:
         cwd_path = os.getcwd()
         env_path = os.path.join(cwd_path, Constants.ENV_FILE)
 
-        if self.verbose:
-            Printer.print_light_grey_message(
-                f"🌴 Loading environment variables from {env_path}..."
-            )
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_light_grey_message,
+            f"🌴 Loading environment variables from {env_path}...",
+        )
 
         dotenv_loaded = load_dotenv(override=True, dotenv_path=env_path)
 
-        if dotenv_loaded and self.verbose:
-            Printer.print_green_message("🌴 Environment variables loaded.")
-        elif not dotenv_loaded and self.verbose:
-            Printer.print_red_message("🌴 Environment variables not loaded.")
+        if dotenv_loaded:
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_green_message,
+                "🌴 Environment variables loaded.",
+            )
+        else:
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_red_message,
+                "🌴 Environment variables not loaded.",
+            )
 
     @log_performance(enabled=lambda self: self.config.performance_logging_enabled)
     def __restructure_query(self, query: str) -> str:
@@ -363,10 +383,11 @@ class AuxKnow:
                 model=Constants.MODEL_GPT4O_MINI,
             )
             restructured_query = response.choices[0].message.content
-            if self.verbose:
-                Printer.print_yellow_message(
-                    f"Restructured query: '{restructured_query}' "
-                )
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_yellow_message,
+                f"Restructured query: '{restructured_query}' ",
+            )
             return restructured_query
         except Exception as e:
             Printer.print_red_message(
@@ -461,8 +482,11 @@ class AuxKnow:
                 max_completion_tokens=Constants.PING_TEST_MAX_TOKENS,
             )
             pong = response.choices[0].message.content
-            if self.verbose:
-                Printer.print_light_grey_message(f"LLM API ping test response: {pong}")
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_light_grey_message,
+                f"LLM API ping test response: {pong}",
+            )
             if pong.lower().find("pong") == -1:
                 Printer.print_red_message(
                     "LLM API ping test failed. Cannot use AuxKnow."
@@ -495,10 +519,11 @@ class AuxKnow:
                 max_tokens=Constants.PING_TEST_MAX_TOKENS,
             )
             pong = response.choices[0].message.content
-            if self.verbose:
-                Printer.print_light_grey_message(
-                    f"Perplexity API ping test response: {pong}"
-                )
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_light_grey_message,
+                f"Perplexity API ping test response: {pong}",
+            )
             if pong.lower().find("pong") == -1:
                 Printer.print_red_message(
                     "Perplexity API ping test failed. Cannot use AuxKnow."
@@ -513,11 +538,19 @@ class AuxKnow:
 
     def _print_initialization_status(self) -> None:
         """Print the initialization status."""
-        if self.initialized:
-            Printer.print_light_grey_message("🚀 AuxKnow ping test passed.")
-            Printer.print_light_grey_message("🚀 AuxKnow API initialized successfully!")
-        if self.verbose:
-            Printer.print_light_grey_message("🗣️  Verbose: ON.")
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_light_grey_message,
+            "🚀 AuxKnow ping test passed." if self.initialized else "",
+        )
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_light_grey_message,
+            "🚀 AuxKnow API initialized successfully!" if self.initialized else "",
+        )
+        Printer.verbose_logger(
+            self.verbose, Printer.print_light_grey_message, "🗣️  Verbose: ON."
+        )
 
     def set_config(self, config: dict) -> None:
         """Set the configuration for AuxKnow.
@@ -623,10 +656,11 @@ class AuxKnow:
                 temperature=Constants.DEFAULT_PROMPT_AUGMENTATION_TEMPERATURE,
             )
             updated_prompt = response.choices[0].message.content
-            if self.verbose:
-                Printer.print_yellow_message(
-                    f"Prompt augmentation segment: '{updated_prompt}' "
-                )
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_yellow_message,
+                f"Prompt augmentation segment: '{updated_prompt}' ",
+            )
             return updated_prompt
         except Exception as e:
             Printer.print_red_message(
@@ -752,10 +786,11 @@ class AuxKnow:
                 context = get_context_callback(question)
 
             if context and get_context_callback:
-                if self.verbose:
-                    Printer.print_light_grey_message(
-                        f"Context and get context callback both provided, defaulting to provided context. "
-                    )
+                Printer.verbose_logger(
+                    self.verbose,
+                    Printer.print_light_grey_message,
+                    "Context and get context callback both provided, defaulting to provided context.",
+                )
 
             if self.config.fast_mode:
                 fast_mode = True
@@ -767,10 +802,15 @@ class AuxKnow:
                 question=question, deep_research=deep_research, fast_mode=fast_mode
             )
 
-            if self.verbose and not for_citations:
-                Printer.print_yellow_message(
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_yellow_message,
+                (
                     f"🧠 Asking question: '{question}' with model: '{model}'."
-                )
+                    if not for_citations
+                    else ""
+                ),
+            )
 
             if not self.initialized:
                 Printer.print_red_message(Constants.UNINITIALIZED_ANSWER)
@@ -865,10 +905,12 @@ class AuxKnow:
                 context = get_context_callback(question)
 
             if context and get_context_callback:
-                if self.verbose:
-                    Printer.print_light_grey_message(
-                        f"Context and get context callback both provided, defaulting to provided context. "
-                    )
+                Printer.verbose_logger(
+                    self.verbose,
+                    Printer.print_light_grey_message,
+                    "Context and get context callback both provided, defaulting to provided context. ",
+                )
+
             if not fast_mode and self.config.auto_query_restructuring:
                 question = self.__restructure_query(question)
 
@@ -876,10 +918,11 @@ class AuxKnow:
                 question=question, deep_research=deep_research, fast_mode=fast_mode
             )
 
-            if self.verbose:
-                Printer.print_yellow_message(
-                    f"🧠 Asking question: '{question}' with model: '{model}'."
-                )
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_yellow_message,
+                f"🧠 Asking question: '{question}' with model: '{model}'.",
+            )
 
             if not self.initialized:
                 Printer.print_red_message(
@@ -1047,8 +1090,11 @@ class AuxKnow:
             response = self.ask(question, for_citations=True)
             return response.citations, ""
         except Exception as e:
-            if self.verbose:
-                Printer.print_red_message(f"Error while getting citations: {e}")
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_red_message,
+                f"Error while getting citations: {e}",
+            )
             return [], str(e)
 
     def version(self) -> str:
