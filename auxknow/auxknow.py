@@ -21,6 +21,7 @@ from uuid import uuid4
 import re
 from .auxknow_memory import AuxKnowMemory
 from collections.abc import Callable
+import warnings
 
 
 class AuxKnowAnswer(BaseModel):
@@ -248,7 +249,8 @@ class AuxKnow:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        perplexity_api_key: Optional[str] = None,
+        api_key: Optional[str] = None,  # Deprecated parameter
         openai_api_key: Optional[str] = None,
         verbose: bool = Constants.DEFAULT_VERBOSE_ENABLED,
         auto_prompt_augment: bool = Constants.DEFAULT_AUTO_PROMPT_AUGMENT,
@@ -256,10 +258,20 @@ class AuxKnow:
         """Initialize the AuxKnow instance.
 
         Args:
-            api_key (Optional[str]): The API key for Perplexity.
+            perplexity_api_key (Optional[str]): The API key for Perplexity.
+            api_key (Optional[str]): Deprecated. Use perplexity_api_key instead.
             openai_api_key (Optional[str]): The API key for OpenAI.
             verbose (bool): Whether to enable verbose logging.
         """
+        if api_key is not None:
+            warnings.warn(
+                "The 'api_key' parameter is deprecated. Use 'perplexity_api_key' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if perplexity_api_key is None:
+                perplexity_api_key = api_key
+
         self.verbose = verbose
         self.config = AuxKnowConfig()
         self.sessions = {}
@@ -272,7 +284,7 @@ class AuxKnow:
 
         self.__load_environment_variables()
 
-        perplexity_api_key = api_key or os.getenv("PERPLEXITY_API_KEY")
+        perplexity_api_key = perplexity_api_key or os.getenv("PERPLEXITY_API_KEY")
         self.initialized = False
 
         if not perplexity_api_key:
