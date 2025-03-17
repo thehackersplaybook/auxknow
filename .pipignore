@@ -63,3 +63,7 @@ cython_debug/
 examples
 scripts
 publish.sh
+tests
+.coverage 
+.gitbook.yaml
+e2e

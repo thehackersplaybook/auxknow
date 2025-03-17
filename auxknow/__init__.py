@@ -2,6 +2,7 @@ import warnings
 from .engine.auxknow import AuxKnow, AuxKnowSession
 from .engine.auxknow_config import AuxKnowConfig
 from .common.models import AuxKnowAnswer
+from .version import AuxKnowVersion
 
 warnings.filterwarnings(
     "ignore",
@@ -10,5 +11,5 @@ warnings.filterwarnings(
     module="pydantic.main",
 )
 
-__version__ = "0.0.15"
+__version__ = AuxKnowVersion.CURRENT_VERSION
 __all__ = ["AuxKnow", "AuxKnowConfig", "AuxKnowAnswer", "AuxKnowSession"]

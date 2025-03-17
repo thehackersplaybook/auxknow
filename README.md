@@ -103,6 +103,13 @@ AuxKnow is designed to cater to a wide range of scenarios, including:
 
 # Changelog
 
+## 🚀 v0.0.16 - Design Improvements & Stability Fixes
+
+- 🎯 Improved overall design and stability of AuxKnow.
+- 🎯 Added improved intelligence to handle various edge cases, errors and operations.
+
+---
+
 ## 🚀 v0.0.15 - Performance Logging
 
 - 🎯 Added `enable_performance_logging` configuration with configurable time units for performance logging.

@@ -8,4 +8,4 @@ class AuxKnowVersion:
         CURRENT_VERSION (str): The current version of the AuxKnow package.
     """
 
-    CURRENT_VERSION = "v0.0.15"
+    CURRENT_VERSION = "v0.0.16"
