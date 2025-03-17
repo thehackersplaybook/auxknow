@@ -13,7 +13,9 @@ class AuxKnowErrorCodes:
 class AuxKnowException(Exception):
     """Base exception for AuxKnow."""
 
-    pass
+    def __init__(self, message: str, error_code: int = None):
+        self.error_code = error_code
+        super().__init__(message)
 
 
 class AuxKnowMemoryException(AuxKnowException):
