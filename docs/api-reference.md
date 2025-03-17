@@ -43,6 +43,10 @@ When initializing AuxKnow, you can provide the following parameters:
 - `verbose` (bool): Whether to enable verbose logging. Default: False
 - `auto_prompt_augment` (bool): Enable automatic prompt enhancement. Default: True
 - `performance_logging_enabled` (bool): Enable performance logging. Default: False
+- `auto_model_routing` (bool): Enable automatic model routing. Default: True
+- `auto_query_restructuring` (bool): Enable automatic query restructuring. Default: False
+- `enable_unibiased_reasoning` (bool): Enable unbiased reasoning mode. Default: True
+- `fast_mode` (bool): Enable fast mode for quicker responses. Default: False
 
 #### Key Functionalities
 
@@ -62,6 +66,7 @@ Sends a query to AuxKnow for an answer. Queries can optionally include additiona
 
 **Outputs:**
 
+- `response.id`: Unique identifier for the response
 - `response.answer`: A complete answer object.
 - `response.citations`: A complete list of all relevant citations.
 - `response.is_final`: Boolean indicating if the response is final.
@@ -279,6 +284,26 @@ Terminates the session, disallowing further queries.
 session.close()
 ```
 
+##### Getting a Session (`get_session`)
+
+Retrieves an existing session by its ID.
+
+**Inputs:**
+
+- `session_id` (str): The unique identifier of the session.
+
+**Outputs:**
+
+- `AuxKnowSession | None`: The session object if found, None otherwise.
+
+**Example Usage:**
+
+```python
+session = auxknow.get_session("session_id_here")
+if session:
+    response = session.ask("What is quantum computing?")
+```
+
 ---
 
 ### AuxKnowAnswer: Answer Response
@@ -334,6 +359,44 @@ config = AuxKnowConfig(
     performance_logging_enabled=True  # Enable performance logging
 )
 print(config.auto_model_routing)
+```
+
+---
+
+### Additional Features
+
+#### Version Information
+
+The `version()` method returns the current version of AuxKnow.
+
+**Example Usage:**
+
+```python
+version = auxknow.version()
+print(f"AuxKnow Version: {version}")
+```
+
+#### Citation Generation (`get_citations`)
+
+Extracts relevant citations for a given query and its response.
+
+**Inputs:**
+
+- `query` (str): The original query
+- `query_response` (str): The response text to extract citations from
+
+**Outputs:**
+
+- `tuple[list[str] | None, str]`: A tuple containing:
+  - List of citation URLs or None if none found
+  - Error message string (empty if successful)
+
+**Example Usage:**
+
+```python
+citations, error = auxknow.get_citations("What is quantum computing?", response_text)
+if not error:
+    print("Citations:", citations)
 ```
 
 ---
