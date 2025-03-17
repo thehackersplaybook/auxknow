@@ -549,8 +549,6 @@ class AuxKnow:
         )
         env_path = os.path.join(os.getcwd(), Constants.ENV_FILE)
 
-        print("env path", env_path)
-
         Printer.verbose_logger(
             self.verbose,
             Printer.print_light_grey_message,
