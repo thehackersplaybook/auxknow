@@ -6,8 +6,8 @@ defaults, and configuration updates.
 """
 
 from pydantic import BaseModel
-from .constants import Constants
-from .printer import Printer
+from ..common.constants import Constants
+from ..common.printer import Printer
 
 
 class AuxKnowConfig(BaseModel):
@@ -47,15 +47,19 @@ class AuxKnowConfig(BaseModel):
             if key == "answer_length_in_paragraphs":
                 if value > Constants.MAX_ANSWER_LENGTH_PARAGRAPHS:
                     Printer.print_yellow_message(
-                        f"Answer length in paragraphs exceeds the maximum limit of {Constants.MAX_ANSWER_LENGTH_PARAGRAPHS}. "
-                        f"Defaulting to {Constants.DEFAULT_ANSWER_LENGTH_PARAGRAPHS}."
+                        Constants.CONFIG_ERROR_ANSWER_LENGTH(
+                            Constants.MAX_ANSWER_LENGTH_PARAGRAPHS,
+                            Constants.DEFAULT_ANSWER_LENGTH_PARAGRAPHS,
+                        )
                     )
                     value = Constants.DEFAULT_ANSWER_LENGTH_PARAGRAPHS
             elif key == "lines_per_paragraph":
                 if value > Constants.MAX_LINES_PER_PARAGRAPH:
                     Printer.print_yellow_message(
-                        f"Lines per paragraph exceeds the maximum limit of {Constants.MAX_LINES_PER_PARAGRAPH}. "
-                        f"Defaulting to {Constants.DEFAULT_LINES_PER_PARAGRAPH}."
+                        Constants.CONFIG_ERROR_LINES_PER_PARAGRAPH(
+                            Constants.MAX_LINES_PER_PARAGRAPH,
+                            Constants.DEFAULT_LINES_PER_PARAGRAPH,
+                        )
                     )
                     value = Constants.DEFAULT_LINES_PER_PARAGRAPH
 

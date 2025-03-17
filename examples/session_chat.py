@@ -29,6 +29,8 @@ def main():
         rprint(f"[green]Answer:[/green] {answer}")
         rprint(f"[blue]Citations:[/blue] {citations}")
 
+    session.close()
+
 
 if __name__ == "__main__":
     main()

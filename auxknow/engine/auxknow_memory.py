@@ -11,24 +11,13 @@ License: AGPLv3
 """
 
 import os
-from langchain_core.documents import Document
-from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_openai import OpenAIEmbeddings
 from uuid import uuid4
-from .constants import Constants
-from .printer import Printer
-
-
-class AuxKnowMemoryException(Exception):
-    """Base exception class for AuxKnowMemory"""
-
-    pass
-
-
-class MemoryCapacityError(AuxKnowMemoryException):
-    """Raised when memory capacity is exceeded"""
-
-    pass
+from langchain_core.documents import Document
+from langchain_openai import OpenAIEmbeddings
+from ..common.constants import Constants
+from ..common.printer import Printer
+from ..common.custom_errors import AuxKnowMemoryException
+from ..common.models import AuxKnowMemoryVectorStore
 
 
 class AuxKnowMemory:
@@ -39,9 +28,8 @@ class AuxKnowMemory:
     contexts and related memory structures for the AuxKnow system.
 
     Attributes:
-        capacity (int): Maximum number of contexts to store
-        contexts (Dict): Storage for conversation contexts
-        logger (logging.Logger): Logger instance for memory operations
+        session_id (str): Unique identifier for the session.
+        verbose (bool): Whether to enable verbose logging.
     """
 
     def __init__(
@@ -54,38 +42,40 @@ class AuxKnowMemory:
         Initialize the memory module.
 
         Args:
-            capacity (int): Maximum number of contexts to store
+            openai_api_key (str): The OpenAI API key to use for memory operations.
+            verbose (bool, optional): Whether to print verbose messages. Defaults to DEFAULT_VERBOSE_ENABLED.
+            session_id (str, optional): The unique session ID for the memory module. Defaults to auto-generated UUID.
 
         Raises:
-            SystemError: If OpenAI API key is not provided
+            AuxKnowMemoryException: If OpenAI API key is not provided
         """
         self.session_id = session_id
         self.verbose = verbose
         if not openai_api_key or openai_api_key.strip() == "":
-            openai_api_key = os.getenv("OPENAI_API_KEY")
+            openai_api_key = os.getenv(Constants.ENV_OPENAI_API_KEY)
 
         if not openai_api_key:
             Printer.verbose_logger(
                 self.verbose,
                 Printer.print_red_message,
-                f"OpenAI API key not provided or set in environment variables for memory module for Session ID [{self.session_id}].",
+                Constants.MEMORY_API_KEY_ERROR.format(self.session_id),
             )
-            raise SystemError(
-                "OpenAI API key not provided or set in environment variables."
-            )
+            raise AuxKnowMemoryException(Constants.MEMORY_API_KEY_EXCEPTION)
 
         Printer.verbose_logger(
             self.verbose,
             Printer.print_blue_message,
-            f"🧠 Initializing the AuxKnow Memory Module with Session ID: {session_id}...",
+            Constants.MEMORY_MODULE_INIT_MESSAGE.format(session_id),
         )
 
-        self.store = InMemoryVectorStore(OpenAIEmbeddings(api_key=openai_api_key))
+        self._store: AuxKnowMemoryVectorStore = AuxKnowMemoryVectorStore(
+            OpenAIEmbeddings(api_key=openai_api_key)
+        )
 
         Printer.verbose_logger(
             self.verbose,
             Printer.print_green_message,
-            f"🧠 Initialized the AuxKnow Memory Module with Session ID: {session_id}! 🚀",
+            Constants.MEMORY_MODULE_INIT_SUCCESS.format(session_id),
         )
 
     def update_memory(self, data: str, id: str = str(uuid4())):
@@ -93,21 +83,24 @@ class AuxKnowMemory:
         Update the memory with the given data.
 
         Args:
-            data (str): The data to update the memory with
+            data (str): The data to update the memory with.
+            id (str, optional): The unique ID for the data. Defaults to auto-generated UUID.
         """
         try:
             document = Document(id=id, page_content=data)
-            self.store.add_documents([document])
+            self._store.add_documents([document])
             Printer.verbose_logger(
                 self.verbose,
                 Printer.print_green_message,
-                f"🧠 Updated memory with data of {len(data)} tokens for Session ID [{self.session_id}].",
+                Constants.MEMORY_UPDATE_SUCCESS.format(len(data), self.session_id),
             )
         except Exception as e:
             Printer.print_red_message(
-                f"Error updating memory with data of {len(data)} tokens for Session ID [{self.session_id}]."
+                Constants.MEMORY_UPDATE_ERROR.format(len(data), self.session_id)
             )
-            raise AuxKnowMemoryException(f"Error updating memory: {str(e)}.")
+            raise AuxKnowMemoryException(
+                Constants.MEMORY_UPDATE_ERROR_TEMPLATE.format(str(e))
+            )
 
     def lookup(
         self, query: str, n: int = Constants.DEFAULT_MEMORY_RETRIEVAL_COUNT
@@ -116,25 +109,27 @@ class AuxKnowMemory:
         Lookup the memory for the given query.
 
         Args:
-            query (str): The query to search for
-            top_k (int): The number of top results to return
+            query (str): The query to search for in memory.
+            n (int, optional): The number of top results to return. Defaults to DEFAULT_MEMORY_RETRIEVAL_COUNT.
 
         Returns:
-            List[str]: The top K results for the query
+            str: A consolidated string of the top n results for the query.
         """
         try:
             Printer.verbose_logger(
                 self.verbose,
                 Printer.print_blue_message,
-                f"🧠 Looking up memory for query: {query} for Session ID [{self.session_id}].",
+                Constants.MEMORY_LOOKUP_START.format(query, self.session_id),
             )
-            documents = self.store.similarity_search(query=query, k=n)
+            documents = self._store.similarity_search(query=query, k=n)
             memory_lookup_results = ""
             for document in documents:
                 memory_lookup_results += f"{document.page_content}\n"
             return memory_lookup_results
         except Exception as e:
             Printer.print_red_message(
-                f"Error looking up memory for {query} for Session ID [{self.session_id}]."
+                Constants.MEMORY_LOOKUP_ERROR.format(query, self.session_id)
             )
-            raise AuxKnowMemoryException(f"Error looking up memory: {str(e)}.")
+            raise AuxKnowMemoryException(
+                Constants.MEMORY_LOOKUP_ERROR_TEMPLATE.format(str(e))
+            )

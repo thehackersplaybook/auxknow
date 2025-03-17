@@ -8,30 +8,12 @@ Copyright (c) 2025 The Hackers Playbook
 License: AGPLv3
 """
 
-from langchain_community.tools import DuckDuckGoSearchResults
 import traceback
-from pydantic import BaseModel
-from .printer import Printer
 from typing import Union
-from .constants import Constants
-
-
-class AuxKnowSearchItem(BaseModel):
-    """
-    AuxKnowSearchResults: A simple Search Engine to enhance the capabilities of AuxKnow.
-    """
-
-    title: str
-    content: str
-    url: str
-
-
-class AuxKnowSearchResults(BaseModel):
-    """
-    AuxKnowSearchResults: A simple Search Engine to enhance the capabilities of AuxKnow.
-    """
-
-    results: list[AuxKnowSearchItem]
+from langchain_community.tools import DuckDuckGoSearchResults
+from ..common.models import AuxKnowSearchItem, AuxKnowSearchResults
+from ..common.printer import Printer
+from ..common.constants import Constants
 
 
 class AuxKnowSearch:
@@ -50,13 +32,15 @@ class AuxKnowSearch:
         Printer.verbose_logger(
             self.verbose,
             Printer.print_blue_message,
-            "🔦 Initializing the AuxKnow Search Engine...",
+            Constants.SEARCH_ENGINE_INIT_MESSAGE,
         )
-        self.search = DuckDuckGoSearchResults(output_format="list")
+        self.search = DuckDuckGoSearchResults(
+            output_format=Constants.SEARCH_ENGINE_OUTPUT_FORMAT
+        )
         Printer.verbose_logger(
             self.verbose,
             Printer.print_green_message,
-            "🔦 Initialized the AuxKnow Search Engine! 🚀",
+            Constants.SEARCH_ENGINE_INIT_SUCCESS,
         )
 
     def query(self, query: str) -> tuple[Union[AuxKnowSearchResults, None], str]:
@@ -73,7 +57,7 @@ class AuxKnowSearch:
             Printer.verbose_logger(
                 self.verbose,
                 Printer.print_yellow_message,
-                f"🔍 Searching for: '{query}'",
+                Constants.SEARCH_ENGINE_QUERY_MESSAGE(query),
             )
             results = self.search.invoke(query)
             results = []
@@ -88,11 +72,11 @@ class AuxKnowSearch:
             Printer.verbose_logger(
                 self.verbose,
                 Printer.print_green_message,
-                f"✨ Found {len(results)} results",
+                Constants.SEARCH_ENGINE_RESULTS_MESSAGE(len(results)),
             )
             return AuxKnowSearchResults(results=results), ""
         except Exception as e:
-            error_msg = f"Error while querying the AuxKnow Search Engine: {e}"
+            error_msg = Constants.SEARCH_ENGINE_ERROR_MESSAGE(e)
             Printer.verbose_logger(self.verbose, Printer.print_red_message, error_msg)
             if self.verbose:
                 traceback.print_exc()

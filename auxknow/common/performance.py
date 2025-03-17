@@ -1,16 +1,8 @@
 import time
 import functools
 from .printer import Printer
-from enum import Enum
-
-
-class TimeUnit(Enum):
-    """Time units for performance logging"""
-
-    NANOSECONDS = "ns"
-    MICROSECONDS = "µs"
-    MILLISECONDS = "ms"
-    SECONDS = "s"
+from .models import TimeUnit
+from .constants import Constants
 
 
 def _convert_time(seconds: float, unit: TimeUnit) -> float:
@@ -53,7 +45,9 @@ def log_performance(enabled=lambda self: False, unit: TimeUnit = TimeUnit.MILLIS
                 end_time = time.time()
                 duration = _convert_time(end_time - start_time, unit)
                 Printer.print_yellow_message(
-                    f"⚡ Performance: {func.__name__} took {duration:.2f}{unit.value}"
+                    Constants.PERFORMANCE_LOG_MESSAGE(
+                        func.__name__, duration, unit.value
+                    )
                 )
 
             return result

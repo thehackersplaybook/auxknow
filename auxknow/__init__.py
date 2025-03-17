@@ -1,5 +1,7 @@
 import warnings
-from .auxknow import AuxKnow, AuxKnowConfig, AuxKnowAnswer, AuxKnowSession
+from .engine.auxknow import AuxKnow, AuxKnowSession
+from .engine.auxknow_config import AuxKnowConfig
+from .common.models import AuxKnowAnswer
 
 warnings.filterwarnings(
     "ignore",
