@@ -103,6 +103,18 @@ AuxKnow is designed to cater to a wide range of scenarios, including:
 
 # Changelog
 
+## 🚀 v0.0.18 - Fix Dependencies
+
+- 🎯 Fix dependencies not being correctly installed.
+
+---
+
+## 🚀 v0.0.17 - Design Improvements & Stability Fixes
+
+- 🎯 Stability improvements and test coverage.
+
+---
+
 ## 🚀 v0.0.16 - Design Improvements & Stability Fixes
 
 - 🎯 Improved overall design and stability of AuxKnow.

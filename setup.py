@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="auxknow",
-    version="0.0.17",
+    version="0.0.18",
     packages=find_packages(),
     install_requires=[
         "python-dotenv>=1.0.1",
@@ -18,6 +18,7 @@ setup(
         "openai>=1.59.9",
         "watchdog>=6.0.0",
         "langchain>=0.3.14",
+        "langchain-openai==0.3.9",
         "langchain-core>=0.3.29",
         "langchain-community>=0.3.14",
         "duckduckgo_search>=7.5.2",
