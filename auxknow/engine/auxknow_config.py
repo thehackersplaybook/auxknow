@@ -36,6 +36,7 @@ class AuxKnowConfig(BaseModel):
     enable_unibiased_reasoning: bool = Constants.DEFAULT_ENABLE_UNBIASED_REASONING
     fast_mode: bool = Constants.DEFAULT_FAST_MODE_ENABLED
     performance_logging_enabled: bool = Constants.DEFAULT_PERFORMANCE_LOGGING_ENABLED
+    test_mode: bool = Constants.DEFAULT_TEST_MODE_ENABLED
 
     def update(self, config: dict) -> None:
         """Update configuration with new values.
