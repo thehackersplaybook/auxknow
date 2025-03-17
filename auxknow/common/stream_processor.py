@@ -4,7 +4,6 @@ Stream processor module for handling streaming responses from the API.
 
 from typing import Optional, Generator, Any, Callable
 from dataclasses import dataclass, field
-import re
 from .models import AuxKnowAnswer
 from ..common.printer import Printer
 from ..common.constants import Constants
@@ -28,35 +27,6 @@ class StreamBuffer:
         self.content = Constants.STREAM_DEFAULT_BUFFER_CONTENT
 
 
-def _remove_think_blocks(answer: str) -> str:
-    """Clean the response from the API.
-
-    Args:
-        answer (str): The response from the API.
-
-    Returns:
-        str: The cleaned response.
-    """
-    try:
-        if not answer or answer.strip() == "":
-            return answer
-
-        clean_answer = re.sub(
-            Constants.THINK_BLOCK_PATTERN, "", answer, flags=re.DOTALL
-        ).strip()
-
-        clean_answer = re.sub(
-            Constants.MULTIPLE_NEWLINES_PATTERN,
-            Constants.NEWLINE_REPLACEMENT,
-            clean_answer,
-        )
-
-        return clean_answer
-    except Exception as e:
-        Printer.print_red_message(Constants.ERROR_CLEAN_ANSWER(e))
-        return answer
-
-
 class StreamProcessor:
     """Handles processing of streamed response chunks."""
 
@@ -68,33 +38,25 @@ class StreamProcessor:
     def extract_think_block(
         buffer: StreamBuffer, verbose=Constants.DEFAULT_VERBOSE_ENABLED
     ) -> Optional[str]:
-        """
-        Extract and remove think block content from buffer.
+        """Extract and remove think block content from buffer.
 
         Args:
-            buffer (StreamBuffer): The buffer to extract from.
-            verbose (bool, optional): Whether to enable verbose logging. Defaults to Constants.DEFAULT_VERBOSE_ENABLED.
+            buffer: StreamBuffer containing content to process
 
         Returns:
-            Optional[str]: The remaining content after extraction
+            Optional[str]: Extracted content outside think block if any
         """
         try:
-            if "<think>" in buffer.content and "</think>" in buffer.content:
-                remaining = _remove_think_blocks(buffer.content)
-                buffer.clear()
-                return remaining
-
             if buffer.is_in_think_block:
                 end_idx = buffer.content.find(StreamProcessor.THINK_BLOCK_END)
                 if end_idx == -1:
                     return None
-
-                remaining = buffer.content[
+                content = buffer.content[
                     end_idx + StreamProcessor.THINK_BLOCK_END_LEN :
                 ]
+                buffer.content = content
                 buffer.is_in_think_block = False
-                buffer.content = ""
-                return remaining
+                return content
 
             start_idx = buffer.content.find(StreamProcessor.THINK_BLOCK_START)
             if start_idx == -1:
@@ -117,7 +79,6 @@ class StreamProcessor:
             ]
             buffer.is_in_think_block = True
             return None
-
         except Exception as e:
             Printer.verbose_logger(
                 verbose,
@@ -133,62 +94,51 @@ class StreamProcessor:
         citation_extractor: Callable[[Any], list[str]],
         verbose: bool = Constants.DEFAULT_VERBOSE_ENABLED,
     ) -> Generator[AuxKnowAnswer, None, None]:
-        """ "
-        Process a stream of responses from the API.
+        """Process response stream and yield answers.
 
         Args:
-            response_stream (Generator[Any, None, None]): The stream of responses from the API.
-            citation_extractor (Callable[[Any], list[str]]): The citation extractor function.
+            response_stream: Stream of response chunks
+            citation_extractor: Function to extract citations from response
 
         Yields:
-            Generator[AuxKnowAnswer, None, None]: The processed response.
+            AuxKnowAnswer objects containing processed chunks
         """
         buffer = StreamBuffer()
-        final_content = ""
 
-        try:
-            for response in response_stream:
-                if not hasattr(response.choices[0].delta, "content"):
-                    continue
+        for response in response_stream:
+            chunk = response.choices[0].delta.content
+            if not chunk:
+                continue
 
-                chunk = response.choices[0].delta.content
-                if chunk is None:
-                    continue
+            buffer.append(chunk)
 
-                buffer.append(chunk)
+            while True:
+                extracted_content = cls.extract_think_block(buffer, verbose=verbose)
+                if extracted_content is None:
+                    break
 
-                while True:
-                    extracted_content = cls.extract_think_block(buffer, verbose=verbose)
-                    if extracted_content is None:
-                        break
+                new_citations = citation_extractor(response)
+                if new_citations:
+                    buffer.citations.extend(new_citations)
+                    buffer.citations = list(set(buffer.citations))
 
-                    final_content += extracted_content
-                    try:
-                        new_citations = citation_extractor(response)
-                        if new_citations:
-                            buffer.citations.extend(new_citations)
-                            buffer.citations = list(set(buffer.citations))
-                    except Exception as e:
-                        if verbose:
-                            Printer.print_red_message(
-                                f"Citation extraction failed: {str(e)}"
-                            )
+                buffer.full_answer += extracted_content
+                yield AuxKnowAnswer(
+                    answer=extracted_content,
+                    citations=buffer.citations,
+                    is_final=False,
+                )
 
-            if buffer.content and not buffer.is_in_think_block:
-                final_content += buffer.content
-
-            final_answer = _remove_think_blocks(final_content)
+        if buffer.content and not buffer.is_in_think_block:
+            buffer.full_answer += buffer.content
             yield AuxKnowAnswer(
-                answer=final_answer,
+                answer=buffer.full_answer,
                 citations=buffer.citations,
                 is_final=True,
             )
 
-        except Exception as e:
-            if verbose:
-                Printer.print_red_message(f"Stream processing error: {str(e)}")
-            yield AuxKnowAnswer(
-                answer=final_content,
-                citations=buffer.citations,
-                is_final=True,
-            )
+        yield AuxKnowAnswer(
+            answer=buffer.content,
+            citations=buffer.citations,
+            is_final=True,
+        )
