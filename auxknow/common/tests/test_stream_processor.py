@@ -128,20 +128,6 @@ class TestStreamProcessor:
         assert results[-1].is_final
         assert results[-1].citations == []
 
-    # TODO: implement partial think blocks in the future
-    # def test_partial_think_blocks(self):
-    #     stream = [
-    #         create_mock_response("<thi"),
-    #         create_mock_response("nk>proc"),
-    #         create_mock_response("essing</thi"),
-    #         create_mock_response("nk>result"),
-    #     ]
-    #     results = list(StreamProcessor.process_stream(stream))
-    #     print("partial results", results)
-    #     assert len(results) == 1
-    #     assert results[0].is_final
-    #     assert results[0].answer == "result"
-
     @pytest.mark.parametrize(
         "input_chunk,expected_answer",
         [
