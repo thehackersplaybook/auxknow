@@ -639,21 +639,6 @@ class AuxKnow:
                 model=Constants.MODEL_GPT4O_MINI,
             )
 
-            Printer.verbose_logger(
-                self.verbose,
-                Printer.print_green_message,
-                json.dumps(
-                    {
-                        "system": system,
-                        "user": prompt,
-                        "models": supported_models,
-                        "unbiased": self.config.model_dump_json(),
-                        "response": response.choices[0].message.content,
-                    },
-                    indent=2,
-                ),
-            )
-
             model = response.choices[0].message.content
 
             if model.lower() not in [
