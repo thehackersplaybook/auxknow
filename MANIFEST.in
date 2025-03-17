@@ -25,6 +25,7 @@ exclude *.py,cover
 exclude .hypothesis/
 exclude .pytest_cache/
 exclude cover/
+exclude tests/
 
 # Exclude environments
 exclude .env
