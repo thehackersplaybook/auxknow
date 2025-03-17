@@ -225,8 +225,18 @@ class Printer:
             print_method(message)
 
     @staticmethod
-    def print_message(message: str, color: PrinterColor = PrinterColor.DEFAULT):
-        """Print a message with a color."""
+    def print_message(message, color: PrinterColor = PrinterColor.DEFAULT) -> None:
+        """Print a message with a color.
+
+        Args:
+            message (str): The message to print
+            color (PrinterColor, optional): Color to use. Defaults to PrinterColor.DEFAULT.
+
+        Raises:
+            TypeError: If message is not a string
+        """
+        if not isinstance(message, str):
+            raise TypeError("Message must be a string")
         rprint(f"[{color.value}]{message}[/{color.value}]")
 
     @staticmethod
