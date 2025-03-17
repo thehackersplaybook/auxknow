@@ -11,3 +11,7 @@ langchain>=0.3.14
 langchain-core>=0.3.29
 langchain-community>=0.3.14
 duckduckgo_search>=7.5.2
+pytest==8.3.4
+pytest-asyncio==0.25.3
+pytest-cov==6.0.0
+pytest-mock==3.14.0
