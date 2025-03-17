@@ -4,7 +4,10 @@ from rich import print as rprint
 
 
 def main():
-    """AuxKnow session based contextual chat with streaming!"""
+    """
+    Basic use-case of AuxKnow, where AuxKnow learns the context of the conversation and improves it's responses.
+    AuxKnow responds with contextual awareness, including the context in the response.
+    """
     answer_engine = AuxKnow(verbose=True)
     session = answer_engine.create_session()
     question = ""
@@ -20,7 +23,6 @@ def main():
         for partial_response in response:
             if partial_response.answer and not partial_response.is_final:
                 answer += partial_response.answer
-                # Clear the line and print the current answer
                 sys.stdout.write(partial_response.answer)
                 sys.stdout.flush()
             if partial_response.citations:

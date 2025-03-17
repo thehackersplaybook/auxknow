@@ -4,7 +4,10 @@ from rich import print as rprint
 
 
 def main():
-    """AuxKnow example with streaming!"""
+    """
+    Basic use-case of AuxKnow, where you perform deep research and see the response as it is being generated.
+    AuxKnow responds with a detailed answer and citations using 'deep research' mode with streaming.
+    """
     answer_engine = AuxKnow(verbose=True)
     question = ""
 
@@ -28,7 +31,6 @@ def main():
         for partial_response in response:
             if partial_response.answer and not partial_response.is_final:
                 answer += partial_response.answer
-                # Clear the line and print the current answer
                 sys.stdout.write(partial_response.answer)
                 sys.stdout.flush()
             if partial_response.citations:

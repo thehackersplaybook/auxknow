@@ -24,7 +24,10 @@ GLOBAL_CONTEXT = f""""
 
 
 def main():
-    """Basic use-case of AuxKnow, ask a question and get an answer."""
+    """
+    Basic use-case of AuxKnow, where you can load custom context and ask a question.
+    AuxKnow responds with contextual awareness, including the context in the response.
+    """
     answer_engine = AuxKnow(verbose=True)
     question = ""
 

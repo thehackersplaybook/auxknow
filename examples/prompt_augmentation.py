@@ -11,7 +11,10 @@ def run_auxknow(auxknow: AuxKnow, question, label: str):
 
 
 def main():
-    """Basic use-case of AuxKnow, ask a question and get an answer."""
+    """
+    Basic use-case of AuxKnow, where you can enable prompt augmentation.
+    Prompt augmentation is a technique to enhance the quality of the answer.
+    """
     auxknow_naive = AuxKnow(verbose=True)
     auxknow_prompt_augment = AuxKnow(verbose=True, auto_prompt_augment=True)
     question = ""

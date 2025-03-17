@@ -10,6 +10,11 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 
 
 def main():
+    """
+    Basic use-case of AuxKnow, where you can create chat sessions.
+    Each session is an independent conversation with AuxKnow and can be used to maintain context.
+    The session needs to be closed at the end of the conversation to release the context.
+    """
     answer_engine = AuxKnow(
         api_key=perplexity_api_key,
         openai_api_key=openai_api_key,

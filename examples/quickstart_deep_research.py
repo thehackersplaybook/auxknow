@@ -3,7 +3,10 @@ from rich import print as rprint
 
 
 def main():
-    """Basic use-case of AuxKnow, ask a question and get an answer."""
+    """
+    Basic use-case of AuxKnow, where you perform deep research.
+    AuxKnow responds with a detailed answer and citations using 'deep research' mode.
+    """
     answer_engine = AuxKnow(verbose=True)
     question = ""
 

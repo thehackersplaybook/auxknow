@@ -3,7 +3,10 @@ from rich import print as rprint
 
 
 def main():
-    """Basic use-case of AuxKnow, ask a question and get an answer."""
+    """
+    Basic use-case of AuxKnow, ask a question and get an answer.
+    In this instance, the user has to wait for the complete answer to be generated before seeing the response.
+    """
     answer_engine = AuxKnow(verbose=True)
     question = ""
 
