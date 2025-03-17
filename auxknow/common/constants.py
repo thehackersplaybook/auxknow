@@ -60,6 +60,7 @@ class Constants:
     DEFAULT_SEARCH_VERBOSE: bool = False
     DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED: bool = False
     DEFAULT_PERFORMANCE_LOGGING_ENABLED: bool = False
+    DEFAULT_TEST_MODE_ENABLED: bool = False
 
     # Format Constants
     DEFAULT_ANSWER_LENGTH_PARAGRAPHS: int = 3
@@ -237,6 +238,9 @@ class Constants:
     MESSAGE_PROMPT_AUGMENTATION: Callable[[bool], str] = (
         lambda enabled: f"🔥 Prompt Augmentation {'enabled!' if enabled else 'disabled.'}"
     )
+    MESSAGE_TEST_MODE_ENABLED: Callable[[bool], str] = (
+        lambda enabled: f"🧪 Test Mode {'enabled!' if enabled else 'disabled.'}"
+    )
 
     # Model Constants
     MODEL_SONAR: str = "sonar"
@@ -255,6 +259,7 @@ class Constants:
     # Path Constants
     CWD_PATH: str = "."
     FILE_ENV: str = ".env"
+    FILE_ENV_TEST: str = ".env.test"
     FILE_CWD: str = "."
 
     # Think Block Constants

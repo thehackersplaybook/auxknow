@@ -277,6 +277,7 @@ class AuxKnow:
         auto_query_restructuring: bool = Constants.DEFAULT_AUTO_QUERY_RESTRUCTURING_ENABLED,
         enable_unibiased_reasoning: bool = Constants.DEFAULT_ENABLE_UNBIASED_REASONING,
         fast_mode: bool = Constants.DEFAULT_FAST_MODE_ENABLED,
+        test_mode: bool = Constants.DEFAULT_TEST_MODE_ENABLED,
     ):
         """Initialize the AuxKnow instance.
 
@@ -306,6 +307,7 @@ class AuxKnow:
             auto_query_restructuring=auto_query_restructuring,
             enable_unibiased_reasoning=enable_unibiased_reasoning,
             fast_mode=fast_mode,
+            test_mode=test_mode,
         )
         self.sessions: dict[str, AuxKnowSession] = {}
         self.initialized = False
@@ -437,6 +439,12 @@ class AuxKnow:
         Printer.verbose_logger(
             self.verbose,
             Printer.print_light_grey_message,
+            Constants.MESSAGE_TEST_MODE_ENABLED(self.config.test_mode),
+        )
+
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_light_grey_message,
             Constants.MESSAGE_PERFORMANCE_LOGGING(
                 self.config.performance_logging_enabled
             ),
@@ -547,7 +555,12 @@ class AuxKnow:
             Printer.print_light_grey_message,
             Constants.MESSAGE_ENV_LOADING,
         )
-        env_path = os.path.join(os.getcwd(), Constants.ENV_FILE)
+
+        env_path = (
+            os.path.join(os.getcwd(), Constants.FILE_ENV)
+            if not self.config.test_mode
+            else os.path.join(os.getcwd(), Constants.FILE_ENV_TEST)
+        )
 
         Printer.verbose_logger(
             self.verbose,
