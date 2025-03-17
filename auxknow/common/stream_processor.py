@@ -2,7 +2,8 @@
 Stream processor module for handling streaming responses from the API.
 """
 
-from typing import Optional, Generator, Any, Callable
+import re
+from typing import Optional, Generator, Any, Callable, List
 from dataclasses import dataclass, field
 from .models import AuxKnowAnswer
 from ..common.printer import Printer
@@ -33,6 +34,18 @@ class StreamProcessor:
     THINK_BLOCK_START = Constants.STREAM_BLOCK_START
     THINK_BLOCK_END = Constants.STREAM_BLOCK_END
     THINK_BLOCK_END_LEN = len(THINK_BLOCK_END)
+
+    @staticmethod
+    def default_citation_extractor(content: str) -> List[str]:
+        """Default citation extractor that extracts citations from the content.
+
+        Args:
+            content (str): Content to extract citations from
+
+        Returns:
+            List[str]: List of citations extracted from the content
+        """
+        return re.findall(r"\((https?://[^\)]+)\)", content)
 
     @staticmethod
     def extract_think_block(
@@ -91,7 +104,7 @@ class StreamProcessor:
     def process_stream(
         cls,
         response_stream: Generator[Any, None, None],
-        citation_extractor: Callable[[Any], list[str]],
+        citation_extractor: Callable[[Any], list[str]] = default_citation_extractor,
         verbose: bool = Constants.DEFAULT_VERBOSE_ENABLED,
     ) -> Generator[AuxKnowAnswer, None, None]:
         """Process response stream and yield answers.
@@ -106,19 +119,54 @@ class StreamProcessor:
         buffer = StreamBuffer()
 
         for response in response_stream:
-            chunk = response.choices[0].delta.content
+
+            chunk: str = response.choices[0].delta.content
+
+            if hasattr(response, "citations"):
+                buffer.citations.extend(response.citations)
+                buffer.citations = list(set(buffer.citations))
+
             if not chunk:
+                continue
+
+            if "<think>" in chunk and "</think>" in chunk:
+                content_outside_think_block = chunk.split("</think>")[1]
+                required_content = content_outside_think_block.strip()
+                buffer.append(required_content)
+                buffer.full_answer += required_content
+                buffer.clear()
+
+                new_citations = []
+                try:
+                    new_citations = citation_extractor(buffer.full_answer)
+                except:
+                    pass
+
+                if new_citations:
+                    buffer.citations.extend(new_citations)
+                    buffer.citations = list(set(buffer.citations))
+
+                yield AuxKnowAnswer(
+                    answer=required_content,
+                    citations=buffer.citations,
+                    is_final=False,
+                )
+
                 continue
 
             buffer.append(chunk)
 
             while True:
                 extracted_content = cls.extract_think_block(buffer, verbose=verbose)
-                if extracted_content is None:
+                if not extracted_content:
                     break
 
-                new_citations = citation_extractor(response)
-                if new_citations:
+                new_citations = []
+                try:
+                    new_citations = citation_extractor(buffer.full_answer)
+                except:
+                    pass
+                if new_citations and len(new_citations) > 0:
                     buffer.citations.extend(new_citations)
                     buffer.citations = list(set(buffer.citations))
 
@@ -129,6 +177,16 @@ class StreamProcessor:
                     is_final=False,
                 )
 
+        if buffer.full_answer:
+            new_citations = []
+            try:
+                new_citations = citation_extractor(buffer.full_answer)
+            except:
+                pass
+            if new_citations and len(new_citations) > 0:
+                buffer.citations.extend(new_citations)
+                buffer.citations = list(set(buffer.citations))
+
         if buffer.content and not buffer.is_in_think_block:
             buffer.full_answer += buffer.content
             yield AuxKnowAnswer(
@@ -138,7 +196,7 @@ class StreamProcessor:
             )
 
         yield AuxKnowAnswer(
-            answer=buffer.content,
+            answer=buffer.full_answer,
             citations=buffer.citations,
             is_final=True,
         )
