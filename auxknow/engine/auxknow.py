@@ -25,6 +25,7 @@ from ..common.printer import Printer
 from ..common.performance import log_performance
 from ..common.stream_processor import StreamProcessor
 from ..common.models import AuxKnowAnswer, AuxKnowAnswerPreparation
+from ..common.llm_factory import LLMFactory
 from ..common.custom_errors import (
     SessionClosedError,
     AuxKnowErrorCodes,
@@ -267,6 +268,7 @@ class AuxKnow:
 
     def __init__(
         self,
+        llm_factory: LLMFactory = None,
         api_key: Optional[str] = None,  # Deprecated parameter
         perplexity_api_key: Optional[str] = None,
         openai_api_key: Optional[str] = None,
@@ -282,6 +284,7 @@ class AuxKnow:
         """Initialize the AuxKnow instance.
 
         Args:
+            llm_factory (LLMFactory): The LLM factory instance. If not provided, a new instance will be created.
             api_key (Optional[str]): Deprecated. Use perplexity_api_key instead. If not provided, it will be loaded from environment variable PERPLEXITY_API_KEY.
             perplexity_api_key (Optional[str]): The API key for Perplexity. If not provided, it will be loaded from environment variable PERPLEXITY_API_KEY.
             openai_api_key (Optional[str]): The API key for OpenAI. If not provided, it will be loaded from environment variable OPENAI_API_KEY.
@@ -298,6 +301,8 @@ class AuxKnow:
             Printer.print_orange_message,
             Constants.MESSAGE_INIT,
         )
+
+        self.check_llm_factory_support(llm_factory=llm_factory, test_mode=test_mode)
 
         self.verbose = verbose
         self.config = AuxKnowConfig(
@@ -322,7 +327,25 @@ class AuxKnow:
         self._init_ai(
             openai_api_key=self.openai_api_key,
             perplexity_api_key=self.perplexity_api_key,
+            llm_factory=llm_factory,
         )
+
+    def check_llm_factory_support(self, llm_factory: LLMFactory, test_mode: bool):
+        """
+        Check if LLM factory is supported and if not then exit.
+
+        Args:
+            - llm_factory (LLMFactory): The LLM factory instance.
+            - test_mode (bool): Whether test mode is enabled.
+
+        Returns:
+            None
+        """
+        if llm_factory and not test_mode:
+            Printer.print_red_message(
+                Constants.ERROR_LLM_FACTORY_NOT_SUPPORTED,
+            )
+            sys.exit(AuxKnowErrorCodes.SYSTEM_LLM_FACTORY_CREATION_FAIL_CODE)
 
     def _load_api_keys(
         self,
@@ -462,7 +485,9 @@ class AuxKnow:
             ),
         )
 
-    def _init_ai(self, openai_api_key: str, perplexity_api_key: str) -> None:
+    def _init_ai(
+        self, openai_api_key: str, perplexity_api_key: str, llm_factory: LLMFactory
+    ) -> None:
         """
          Initializes the AuxKnow AI.
 
@@ -480,6 +505,7 @@ class AuxKnow:
         llm_initialized, llm = self._init_llm(
             openai_api_key,
             base_url=None,
+            llm_factory=llm_factory,
             ping_test=ping_test_callback,
             label="LLM API",
             exit_on_failure=True,
@@ -487,6 +513,7 @@ class AuxKnow:
         client_initialized, client = self._init_llm(
             perplexity_api_key,
             base_url=Constants.PERPLEXITY_API_BASE_URL,
+            llm_factory=llm_factory,
             ping_test=ping_test_callback,
             label="Perplexity API",
             exit_on_failure=True,
@@ -502,6 +529,7 @@ class AuxKnow:
         base_url: str,
         ping_test: Callable[[OpenAI, str], bool],
         label: str,
+        llm_factory: LLMFactory,
         exit_on_failure: bool = Constants.DEFAULT_EXIT_ON_LLM_INIT_FAILURE,
     ) -> tuple[bool, OpenAI]:
         """
@@ -513,11 +541,19 @@ class AuxKnow:
         Returns:
             bool: True if the LLM is initialized, False otherwise
         """
-
-        if base_url:
-            llm_client = OpenAI(api_key=openai_api_key, base_url=base_url)
+        llm_client = None
+        if llm_factory:
+            llm_client = llm_factory.get_openai_client(
+                api_key=openai_api_key, base_url=base_url, verbose=self.verbose
+            )
+            if not llm_client:
+                llm_client = self._get_openai_client(
+                    openai_api_key=openai_api_key, base_url=base_url
+                )
         else:
-            llm_client = OpenAI(api_key=openai_api_key)
+            llm_client = self._get_openai_client(
+                openai_api_key=openai_api_key, base_url=base_url
+            )
 
         llm_initialized = ping_test(client=llm_client, label=label)
 
@@ -537,6 +573,23 @@ class AuxKnow:
                 sys.exit(AuxKnowErrorCodes.SYSTEM_PING_TEST_FAIL_CODE)
 
         return llm_initialized, llm_client
+
+    def _get_openai_client(self, openai_api_key: str, base_url: str):
+        """
+        Get the OpenAI client instance.
+
+        Args:
+            - openai_api_key (str): The OpenAI API key.
+            - base_url (str): The base URL for the OpenAI client.
+
+        Returns:
+            OpenAI: The OpenAI client instance.
+        """
+        if base_url:
+            llm_client = OpenAI(api_key=openai_api_key, base_url=base_url)
+        else:
+            llm_client = OpenAI(api_key=openai_api_key)
+        return llm_client
 
     def _load_environment_variables(self) -> None:
         """Load environment variables from .env file.

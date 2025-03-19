@@ -49,7 +49,10 @@ class Constants:
     ERROR_ROUTING: Callable[[Any], str] = (
         lambda e: f"Error while routing query to model: {str(e)}"
     )
-    ERROR_CLOSED_SESSION: str = "Cannot ask a question on a closed session."
+    ERROR_CLOSED_SESSION: str = ("Cannot ask a question on a closed session.",)
+    ERROR_LLM_FACTORY_NOT_SUPPORTED: str = (
+        "LLM Factory is supported only in test mode. Cannot use AuxKnow."
+    )
 
     # Feature Constants
     DEFAULT_AUTO_MODEL_ROUTING_ENABLED: bool = False
