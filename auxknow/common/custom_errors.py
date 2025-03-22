@@ -19,6 +19,18 @@ class AuxKnowException(Exception):
         super().__init__(message)
 
 
+class InvalidModelNameError(AuxKnowException):
+    """Raised when an invalid model name is provided."""
+
+    pass
+
+
+class LLMAdapterError(AuxKnowException):
+    """Raised when LLM adapter fails."""
+
+    pass
+
+
 class AuxKnowMemoryException(AuxKnowException):
     """Base exception class for AuxKnowMemory"""
 
