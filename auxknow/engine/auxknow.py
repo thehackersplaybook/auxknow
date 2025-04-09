@@ -896,11 +896,18 @@ class AuxKnow:
         Returns:
             str: The model name to use
         """
+
+        #1. Fast mode always win
         if fast_mode and deep_research:
             Printer.verbose_logger(
                 self.verbose,
                 Printer.print_light_grey_message,
                 Constants.MESSAGE_FAST_MODE_OVERRIDE,
+            )
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_light_grey_message,
+                "Using Fast Mode model.",
             )
             return Constants.DEFAULT_MODELS["fast_mode"]
 
@@ -911,8 +918,14 @@ class AuxKnow:
                     Printer.print_light_grey_message,
                     Constants.MESSAGE_AUTO_MODEL_ROUTING_OVERRIDE("Fast mode"),
                 )
+                Printer.verbose_logger(
+                    self.verbose,
+                    Printer.print_light_grey_message,
+                    "Using Fast Mode model.",
+                )
             return Constants.DEFAULT_MODELS["fast_mode"]
-
+        
+        #2. Deep research mode always win
         if deep_research:
             if self.config.auto_model_routing:
                 Printer.verbose_logger(
@@ -920,8 +933,14 @@ class AuxKnow:
                     Printer.print_light_grey_message,
                     Constants.MESSAGE_AUTO_MODEL_ROUTING_OVERRIDE("Deep research"),
                 )
+                Printer.verbose_logger(
+                    self.verbose,
+                    Printer.print_light_grey_message,
+                    "Using Deep Research model.",
+                )
             return Constants.DEFAULT_MODELS["deep_research"]
 
+        #3. Reasoning mode always win
         if reasoning or self.config.enable_reasoning:
             if self.config.auto_model_routing:
                 Printer.verbose_logger(
@@ -929,11 +948,28 @@ class AuxKnow:
                     Printer.print_light_grey_message,
                     Constants.MESSAGE_AUTO_MODEL_ROUTING_OVERRIDE("Reasoning mode"),
                 )
+                Printer.verbose_logger(
+                    self.verbose,
+                    Printer.print_light_grey_message,
+                    "Using Reasoning model.",
+                )
             return Constants.DEFAULT_MODELS["reasoning"]
 
+        #4. Auto query restructuring mode always win
         if self.config.auto_model_routing:
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_light_grey_message,
+                "Auto model routing is enabled. Delegating to router...",
+            )
             return self.__route_query_to_model(question)
 
+        #5. Fallback
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_light_grey_message,
+            "No mode flags triggered. Using Standard model.",
+        )
         return Constants.DEFAULT_MODELS["standard"]
 
     def _build_user_ask_prompt(
