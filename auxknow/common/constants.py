@@ -64,6 +64,7 @@ class Constants:
     DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED: bool = False
     DEFAULT_PERFORMANCE_LOGGING_ENABLED: bool = False
     DEFAULT_TEST_MODE_ENABLED: bool = False
+    DEFAULT_ENABLE_REASONING = False
 
     # Format Constants
     DEFAULT_ANSWER_LENGTH_PARAGRAPHS: int = 3
@@ -248,12 +249,15 @@ class Constants:
     # Model Constants
     MODEL_SONAR: str = "sonar"
     MODEL_SONAR_PRO: str = "sonar-pro"
+    MODEL_SONAR_REASONING: str = "sonar-reasoning"
+    MODEL_SONAR_REASONING_PRO: str = "sonar-reasoning-pro"
     MODEL_R1_1776: str = "r1-1776"
     MODEL_GPT4O_MINI: str = "gpt-4o-mini"
     MODEL_SONAR_DEEP_RESEARCH: str = "sonar-deep-research"
     DEFAULT_MODELS: Dict[str, str] = {
         "standard": "sonar",
         "perplexity": "sonar-pro",
+        "reasoning": "sonar-reasoning",
         "deep_research": "sonar-deep-research",
         "prompt_augmentation": "gpt-4o-mini",
         "fast_mode": "sonar",
@@ -314,7 +318,10 @@ class Constants:
             Available models:
             1. **sonar** – Best for general queries, quick lookups, and simple factual questions.
             2. **sonar-pro** – Advanced model for complex, analytical, or research-heavy questions, providing citations.
-            {"3. **r1-1776** – Uncensored, unbiased model for factual, unrestricted responses." if enable_unibiased_reasoning else ""} 
+            3.**sonar-reasoning** – For reasoning and analytical tasks, providing detailed explanations.
+            4. **sonar-reasoning-pro** – Advanced reasoning model for complex analytical tasks, providing citations.
+            {"5. **r1-1776** – Uncensored, unbiased model for factual, unrestricted responses." if enable_unibiased_reasoning else ""} 
+            
             Examples:
             - Query: "Where is Tesla headquartered?" → Response: "sonar"
             - Query: "What are the key factors affecting Tesla's Q4 revenue projections?" → Response: "sonar-pro"
