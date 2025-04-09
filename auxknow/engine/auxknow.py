@@ -20,7 +20,7 @@ from collections.abc import Callable
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict
 from openai import OpenAI
-from ..common.constants import Constants
+from ..common.constants import Constants, SupportedAIModel
 from ..common.printer import Printer
 from ..common.performance import log_performance
 from ..common.stream_processor import StreamProcessor
@@ -673,20 +673,58 @@ class AuxKnow:
         except Exception as e:
             Printer.print_red_message(Constants.ERROR_ASK_QUESTION(e))
             return query
+        
+    def _load_supported_model_names(self, enable_reasoning: bool) -> list[str]:
+        """Load the supported model names.
+
+        Returns:
+            list[str]: The list of supported model names.
+        """
+        supported_model_names = []
+        standard_models = [Constants.MODEL_SONAR, Constants.MODEL_SONAR_PRO]
+        reasoning_models = [Constants.MODEL_SONAR_REASONING, Constants.MODEL_SONAR_REASONING_PRO]
+
+        if enable_reasoning:
+            supported_model_names.extend(reasoning_models)
+        else:
+            supported_model_names.extend(standard_models)
+      
+        if self.config.enable_unibiased_reasoning:
+            supported_model_names.append(Constants.MODEL_R1_1776)
+        
+        return supported_model_names
+    
+    def _get_supported_models_from_names(self, model_names: list[str]) -> list[SupportedAIModel]:
+        """Get the supported models from the model names.
+
+        Args:
+            model_names (list[str]): The list of model names.
+
+        Returns:
+            list[SupportedAIModel]: The list of supported models.
+        """
+        supported_models = []
+        for model_name in model_names:
+            for supported_model in Constants.AVAILABLE_MODELS_FOR_ROUTER:
+                if model_name == supported_model.model:
+                    supported_models.append(supported_model)
+        return supported_models
+    
 
     @log_performance(enabled=lambda self: self.config.performance_logging_enabled)
-    def __route_query_to_model(self, query: str) -> str:
+    def __route_query_to_model(self, query: str, enable_reasoning: bool = Constants.DEFAULT_ENABLE_REASONING) -> str:
         """Route the query to the appropriate model based on the query.
 
         Args:
             query (str): The original query.
+            enable_reasoning (bool): Whether to enable reasoning mode. Default is False.
 
         Returns:
             str: The model name to use for the query.
         """
-        supported_models = [Constants.MODEL_SONAR, Constants.MODEL_SONAR_PRO]
-        if self.config.enable_unibiased_reasoning:
-            supported_models.append(Constants.MODEL_R1_1776)
+        model_names = self._load_supported_model_names(enable_reasoning=enable_reasoning)
+        supported_models = self._get_supported_models_from_names(model_names=model_names)
+
         try:
             prompt = Constants.DEFAULT_AUXKNOW_MODEL_ROUTER_USER_PROMPT(
                 query, supported_models, self.config.enable_unibiased_reasoning
@@ -706,9 +744,7 @@ class AuxKnow:
             model = response.choices[0].message.content
 
             if model.lower() not in [
-                Constants.MODEL_SONAR,
-                Constants.MODEL_SONAR_PRO,
-                Constants.MODEL_R1_1776,
+                m.model for m in supported_models
             ]:
                 Printer.print_red_message(
                     Constants.ERROR_INVALID_MODEL(model, Constants.MODEL_SONAR)
@@ -880,7 +916,7 @@ class AuxKnow:
         return list(set(citations))
 
     def _get_model(
-        self, question: str, deep_research: bool, fast_mode: bool = False
+        self, question: str, deep_research: bool, fast_mode: bool = False, enable_reasoning: bool = False
     ) -> str:
         """Get the model to use for the query.
 
@@ -888,11 +924,18 @@ class AuxKnow:
             question (str): The question being asked
             deep_research (bool): Whether deep research mode is enabled
             fast_mode (bool): Whether fast mode is enabled (overrides other settings)
+            reasoning (bool): Whether reasoning mode is enabled
+            reasoning_pro (bool): Whether reasoning pro mode is enabled
 
         Returns:
             str: The model name to use
         """
-        if fast_mode and deep_research:
+
+        fast_mode = self.config.fast_mode or fast_mode
+        enable_reasoning = self.config.enable_reasoning or enable_reasoning
+        deep_research = deep_research # there is no global config for deep_research
+
+        if (fast_mode and deep_research) or (fast_mode and enable_reasoning):
             Printer.verbose_logger(
                 self.verbose,
                 Printer.print_light_grey_message,
@@ -908,6 +951,14 @@ class AuxKnow:
                     Constants.MESSAGE_AUTO_MODEL_ROUTING_OVERRIDE("Fast mode"),
                 )
             return Constants.DEFAULT_MODELS["fast_mode"]
+        
+        if deep_research and enable_reasoning:
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_light_grey_message,
+                Constants.MESSAGE_DEEP_RESEARCH_REASONING_OVERRIDE,
+            )
+            return Constants.DEFAULT_MODELS["reasoning"]
 
         if deep_research:
             if self.config.auto_model_routing:
@@ -916,11 +967,29 @@ class AuxKnow:
                     Printer.print_light_grey_message,
                     Constants.MESSAGE_AUTO_MODEL_ROUTING_OVERRIDE("Deep research"),
                 )
+                Printer.verbose_logger(
+                    self.verbose,
+                    Printer.print_light_grey_message,
+                    "Using Deep Research model.",
+                )
             return Constants.DEFAULT_MODELS["deep_research"]
 
-        if self.config.auto_model_routing:
-            return self.__route_query_to_model(question)
+        if enable_reasoning and not (self.config.auto_model_routing):
+            return Constants.DEFAULT_MODELS["reasoning"]
 
+        if self.config.auto_model_routing:
+            Printer.verbose_logger(
+                self.verbose,
+                Printer.print_light_grey_message,
+                "Auto model routing is enabled. Delegating to router...",
+            )
+            return self.__route_query_to_model(question, enable_reasoning=enable_reasoning)
+
+        Printer.verbose_logger(
+            self.verbose,
+            Printer.print_light_grey_message,
+            "No mode flags triggered. Using Standard model.",
+        )
         return Constants.DEFAULT_MODELS["standard"]
 
     def _build_user_ask_prompt(
