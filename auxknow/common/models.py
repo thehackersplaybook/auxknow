@@ -85,3 +85,9 @@ class AuxKnowMemoryVectorStore(InMemoryVectorStore):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+class SupportedAIModel(BaseModel):
+    """AI Models supported by AuxKnow Model Router."""
+    model: str 
+    description: str

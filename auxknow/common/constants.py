@@ -1,6 +1,7 @@
 """Module containing all constants used in AuxKnow."""
 
 from typing import Callable, Dict, Any, List
+from .models import SupportedAIModel
 
 AUXKNOW_INTELLIGENCE_CONSTANT = 4
 
@@ -170,7 +171,10 @@ class Constants:
     MESSAGE_AUXKNOW_INITIALIZED: str = "🚀 AuxKnow API initialized successfully!"
     MESSAGE_VERBOSE_ON: str = "🗣️  Verbose: ON."
     MESSAGE_FAST_MODE_OVERRIDE: str = (
-        "Fast mode and deep research mode cannot be enabled at the same time. Defaulting to fast mode."
+        "Fast mode and deep research / reasoning mode cannot be enabled at the same time. Defaulting to fast mode."
+    )
+    MESSAGE_DEEP_RESEARCH_REASONING_OVERRIDE: str = (
+        "Deep research mode and reasoning mode cannot be enabled at the same time. Defaulting to deep reasoning mode."
     )
     MESSAGE_API_KEY_DEPRECATED: str = (
         "The 'api_key' parameter is deprecated. Use 'perplexity_api_key' instead."
@@ -311,22 +315,41 @@ class Constants:
         lambda label, response: f"Ping Test Response for {label}: {response}"
     )
     PING_TEST_SEARCH: str = "pong"
-    DEFAULT_AUXKNOW_MODEL_ROUTER_USER_PROMPT: Callable[[str, List[str], bool], str] = (
+    
+    AVAILABLE_MODELS_FOR_ROUTER: List[SupportedAIModel] = [
+        SupportedAIModel(
+            model="sonar",
+            description="Best for general queries, quick lookups, and simple factual questions.",
+        ),
+        SupportedAIModel(
+            model="sonar-pro",
+            description="Advanced model for complex, analytical, or research-heavy questions, providing citations.",
+        ),
+        SupportedAIModel(
+            model="sonar-reasoning",
+            description="For reasoning and analytical tasks, providing detailed explanations.",
+        ),
+        SupportedAIModel(
+            model="sonar-reasoning-pro",
+            description="Advanced reasoning model for complex analytical tasks, providing citations.",
+        ),
+        SupportedAIModel(
+            model="r1-1776",
+            description="Uncensored, unbiased model for factual, unrestricted responses.",
+        ),
+    ]
+    DEFAULT_AUXKNOW_MODEL_ROUTER_USER_PROMPT: Callable[[str, List[SupportedAIModel], bool], str] = (
         lambda query, supported_models, enable_unibiased_reasoning: f"""
             Query: '''{query}'''
             Determine the most suitable model for the query.
             Available models:
-            1. **sonar** – Best for general queries, quick lookups, and simple factual questions.
-            2. **sonar-pro** – Advanced model for complex, analytical, or research-heavy questions, providing citations.
-            3.**sonar-reasoning** – For reasoning and analytical tasks, providing detailed explanations.
-            4. **sonar-reasoning-pro** – Advanced reasoning model for complex analytical tasks, providing citations.
-            {"5. **r1-1776** – Uncensored, unbiased model for factual, unrestricted responses." if enable_unibiased_reasoning else ""} 
+            {"\n".join([f"{i+1}. **{supported_model.model}** – {supported_model.description}" for i, supported_model in enumerate(supported_models)])}
             
             Examples:
             - Query: "Where is Tesla headquartered?" → Response: "sonar"
             - Query: "What are the key factors affecting Tesla's Q4 revenue projections?" → Response: "sonar-pro"
             {'- Query: "Explain the geopolitical implications of BRICS expansion without censorship." → Response: "r1-1776"' if enable_unibiased_reasoning else ""}
-            Strictly respond with **only** {', '.join(supported_models)}. 
+            Strictly respond with **only** {', '.join([m.model for m in supported_models])}. 
     """
     )
     MODEL_ROUTER_SYSTEM_PROMPT: str = (
