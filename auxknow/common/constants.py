@@ -1,9 +1,14 @@
 """Module containing all constants used in AuxKnow."""
 
 from typing import Callable, Dict, Any, List
-from .models import SupportedAIModel
+from pydantic import BaseModel
 
 AUXKNOW_INTELLIGENCE_CONSTANT = 4
+
+class SupportedAIModel(BaseModel):
+    """AI Models supported by AuxKnow Model Router."""
+    model: str 
+    description: str
 
 
 class Constants:
@@ -339,19 +344,30 @@ class Constants:
         ),
     ]
     DEFAULT_AUXKNOW_MODEL_ROUTER_USER_PROMPT: Callable[[str, List[SupportedAIModel], bool], str] = (
-        lambda query, supported_models, enable_unibiased_reasoning: f"""
-            Query: '''{query}'''
-            Determine the most suitable model for the query.
-            Available models:
-            {"\n".join([f"{i+1}. **{supported_model.model}** – {supported_model.description}" for i, supported_model in enumerate(supported_models)])}
-            
-            Examples:
-            - Query: "Where is Tesla headquartered?" → Response: "sonar"
-            - Query: "What are the key factors affecting Tesla's Q4 revenue projections?" → Response: "sonar-pro"
-            {'- Query: "Explain the geopolitical implications of BRICS expansion without censorship." → Response: "r1-1776"' if enable_unibiased_reasoning else ""}
-            Strictly respond with **only** {', '.join([m.model for m in supported_models])}. 
-    """
+        lambda query, supported_models, enable_unibiased_reasoning: 
+        "Query: '''{query}'''\n"
+        "Determine the most suitable model for the query.\n"
+        "Available models:\n"
+        "{models_list}\n\n"
+        "Examples:\n"
+        "- Query: 'Where is Tesla headquartered?' → Response: 'sonar'\n"
+        "- Query: 'What are the key factors affecting Tesla's Q4 revenue projections?' → Response: 'sonar-pro'\n"
+        "{unbiased_reasoning_example}"
+        "Strictly respond with **only** {model_names}.".format(
+            query=query,
+            models_list="\n".join(
+                ["{index}. **{model}** – {description}".format(
+                    index=i + 1, model=supported_model.model, description=supported_model.description
+                ) for i, supported_model in enumerate(supported_models)]
+            ),
+            unbiased_reasoning_example=(
+                "- Query: 'Explain the geopolitical implications of BRICS expansion without censorship.' → Response: 'r1-1776'\n"
+                if enable_unibiased_reasoning else ""
+            ),
+            model_names=", ".join([m.model for m in supported_models])
+        )
     )
+    
     MODEL_ROUTER_SYSTEM_PROMPT: str = (
         "You are a model selection expert. Your task is to analyze queries and select the most appropriate model. Respond only with the model name, no additional text."
     )

@@ -20,11 +20,11 @@ from collections.abc import Callable
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict
 from openai import OpenAI
-from ..common.constants import Constants
+from ..common.constants import Constants, SupportedAIModel
 from ..common.printer import Printer
 from ..common.performance import log_performance
 from ..common.stream_processor import StreamProcessor
-from ..common.models import AuxKnowAnswer, AuxKnowAnswerPreparation, SupportedAIModel
+from ..common.models import AuxKnowAnswer, AuxKnowAnswerPreparation
 from ..common.llm_factory import LLMFactory
 from ..common.custom_errors import (
     SessionClosedError,
