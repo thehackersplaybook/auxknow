@@ -1,4 +1,4 @@
-from auxknow.common.constants import Constants, AUXKNOW_INTELLIGENCE_CONSTANT
+from auxknow.common.constants import Constants, AUXKNOW_INTELLIGENCE_CONSTANT, SupportedAIModel
 
 
 def test_constants_initialization():
@@ -133,7 +133,7 @@ def test_prompt_templates():
 
     # Add tests for the missing prompt templates
     model_router_prompt = Constants.DEFAULT_AUXKNOW_MODEL_ROUTER_USER_PROMPT(
-        "test query", ["model1", "model2"], True
+        "test query", [SupportedAIModel(model="model1", description="test description"), SupportedAIModel(model="model2", description="test description 2")], True
     )
     assert "test query" in model_router_prompt
     assert "model1" in model_router_prompt
@@ -318,7 +318,7 @@ def test_additional_message_constants():
     assert Constants.MESSAGE_VERBOSE_ON == "🗣️  Verbose: ON."
     assert (
         Constants.MESSAGE_FAST_MODE_OVERRIDE
-        == "Fast mode and deep research mode cannot be enabled at the same time. Defaulting to fast mode."
+        == "Fast mode and deep research / reasoning mode cannot be enabled at the same time. Defaulting to fast mode."
     )
     assert (
         Constants.LOG_CONTEXT_OVERRIDE

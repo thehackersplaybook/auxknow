@@ -103,6 +103,13 @@ AuxKnow is designed to cater to a wide range of scenarios, including:
 
 # Changelog
 
+## 🚀 v0.0.19 - Add support for reasoning and deep reasoning models.
+
+- 🎯 Added support for Perplexity Sonar Reasoning and Sonar Reasoning Pro.
+- 🎯 Stability improvements and test coverage.
+
+---
+
 ## 🚀 v0.0.18 - Fix Dependencies
 
 - 🎯 Fix dependencies not being correctly installed.
