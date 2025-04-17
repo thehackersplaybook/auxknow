@@ -174,6 +174,7 @@ class AuxKnowSession(BaseModel):
         question: str,
         deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
         fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
+        enable_reasoning=Constants.DEFAULT_ENABLE_REASONING,
         for_citations=Constants.DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED,
         get_context_callback: Callable[[str], str] = None,
         update_context_callback: Callable[[str, AuxKnowAnswer], None] = None,
@@ -184,6 +185,7 @@ class AuxKnowSession(BaseModel):
             question (str): The question to ask.
             deep_research (bool): Whether to enable deep research mode. (Default: False)
             fast_mode (bool): When True, overrides other settings for fastest response.
+            enable_reasoning (bool): Whether to enable reasoning mode. (Default: False)
             for_citations (bool): Whether to enable citation mode. (Defaults to DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED).
             get_context_callback (Callable[[str], str]): Callback to load context for the question.
             update_context_callback (Callable[[str, AuxKnowAnswer], None]): Callback to update context with the answer.
@@ -202,6 +204,7 @@ class AuxKnowSession(BaseModel):
             question=question,
             deep_research=deep_research,
             fast_mode=fast_mode,
+            enable_reasoning=enable_reasoning,
             get_context_callback=get_context_callback,
             update_context_callback=update_context_callback,
             for_citations=for_citations,
@@ -212,6 +215,7 @@ class AuxKnowSession(BaseModel):
         question: str,
         deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
         fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
+        enable_reasoning=Constants.DEFAULT_ENABLE_REASONING,
         for_citations=Constants.DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED,
         get_context_callback: Callable[[str], str] = None,
         update_context_callback: Callable[[str, AuxKnowAnswer], None] = None,
@@ -222,6 +226,7 @@ class AuxKnowSession(BaseModel):
             question (str): The question to ask.
             deep_research (bool): Whether to enable deep research mode. (Default: False)
             fast_mode (bool): When True, overrides other settings for fastest response.
+            enable_reasoning (bool): Whether to enable reasoning mode. (Default: False)
             get_context_callback (Callable[[str], str]): Callback to load context for the question.
             update_context_callback (Callable[[str, AuxKnowAnswer], None]): Callback to update context with the answer.
             for_citations (bool): Whether to enable citation mode. (Defaults to DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED).
@@ -240,6 +245,7 @@ class AuxKnowSession(BaseModel):
             question=question,
             deep_research=deep_research,
             fast_mode=fast_mode,
+            enable_reasoning=enable_reasoning,
             for_citations=for_citations,
             get_context_callback=get_context_callback,
             update_context_callback=update_context_callback,
@@ -280,6 +286,7 @@ class AuxKnow:
         enable_unibiased_reasoning: bool = Constants.DEFAULT_ENABLE_UNBIASED_REASONING,
         fast_mode: bool = Constants.DEFAULT_FAST_MODE_ENABLED,
         test_mode: bool = Constants.DEFAULT_TEST_MODE_ENABLED,
+        enable_reasoning: bool = Constants.DEFAULT_ENABLE_REASONING,
     ):
         """Initialize the AuxKnow instance.
 
@@ -295,6 +302,7 @@ class AuxKnow:
             auto_query_restructuring (bool): Whether to enable automatic query restructuring. Default is False.
             enable_unibiased_reasoning (bool): Whether to enable unbiased reasoning mode. Default is True.
             fast_mode (bool): Whether to enable fast mode. Default is False.
+            enable_reasoning (bool): Whether to enable reasoning mode. Default is False.
         """
         Printer.verbose_logger(
             verbose,
@@ -312,6 +320,8 @@ class AuxKnow:
             auto_query_restructuring=auto_query_restructuring,
             enable_unibiased_reasoning=enable_unibiased_reasoning,
             fast_mode=fast_mode,
+            enable_reasoning=enable_reasoning,
+
             test_mode=test_mode,
         )
         self.sessions: dict[str, AuxKnowSession] = {}
@@ -836,6 +846,7 @@ class AuxKnow:
             - enable_unbiased_reasoning (int): Enable or disable unbiased reasoning mode (default: `True`).
             - fast_mode (bool): When enabled, overrides other settings for fastest response (default: `False`).
             - performance_logging_enabled (bool): Enable or disable performance logging (default: `False`).
+            - enable_reasoning (bool): Enable or disable reasoning mode (default: `False`).
         """
         return self.config.update(config=config)
 
