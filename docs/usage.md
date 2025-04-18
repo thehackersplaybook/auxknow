@@ -30,6 +30,7 @@ response = auxknow.ask(
     context="",  # Optional context
     deep_research=False,  # Optional, enables in-depth research mode
     fast_mode=False,  # Optional, prioritizes speed over quality
+    enable_reasoning=False,  # Optional, enables reasoning mode
     for_citations=True  # Optional, enables citation extraction
 )
 
@@ -52,6 +53,7 @@ for partial_response in auxknow.ask_stream(
     "Explain quantum mechanics.",
     deep_research=False,  # Optional
     fast_mode=False,  # Optional
+    enable_reasoning=False,  # Optional
     for_citations=True  # Optional
 ):
     print(partial_response.answer, end="")
@@ -77,13 +79,14 @@ response = session.ask(
     "What are the main principles of relativity?",
     deep_research=True,  # Optional
     fast_mode=False,  # Optional
+    enable_reasoning=False,  # Optional
     for_citations=True  # Optional
 )
 print("Answer:", response.answer)
 print("Citations:", response.citations)
 
 # Continue with contextual queries
-response = session.ask("How does it relate to quantum mechanics?")
+response = session.ask("How does it relate to quantum mechanics?", enable_reasoning=True)
 print("Answer:", response.answer)
 print("Citations:", response.citations)
 
@@ -109,6 +112,7 @@ task_config = {
     "lines_per_paragraph": 5,  # Sets lines per paragraph
     "auto_prompt_augment": True,  # Enables prompt enhancement
     "enable_unbiased_reasoning": True,  # Enables unbiased mode
+    "enable_reasoning": False,  # Enables reasoning mode
     "fast_mode": False,  # Fast response mode
     "performance_logging_enabled": False  # Performance tracking
 }
@@ -181,6 +185,38 @@ for partial_response in auxknow.ask_stream(
     print(partial_response.answer, end="")
 ```
 
+### Reasoning Mode
+
+Reasoning mode provides logical and structured responses suitable for:
+
+- Analytical Problem Solving
+- Logical Explanations
+- Decision-Making Support
+
+```python
+from auxknow import AuxKnow
+
+auxknow = AuxKnow(perplexity_api_key="your_api_key", openai_api_key="your_openai_api_key")
+
+# Reasoning mode with standard ask
+response = auxknow.ask(
+    "Explain the ethical implications of AI in healthcare.",
+    enable_reasoning=True,
+    for_citations=True
+)
+
+print("Answer:", response.answer)
+print("Citations:", response.citations)
+
+# Reasoning mode with streaming
+for partial_response in auxknow.ask_stream(
+    "Analyze the impact of blockchain on supply chain management.",
+    enable_reasoning=True,
+    for_citations=True
+):
+    print(partial_response.answer, end="")
+```
+
 ### Citation Extraction
 
 AuxKnow automatically extracts citations for responses:
@@ -220,5 +256,6 @@ print("AuxKnow Version:", version)
 - Frame your queries as questions for better results
 - Deep Research mode is recommended for complex queries requiring detailed analysis
 - Fast mode overrides other settings for maximum speed
+- Reasoning mode provides logical and structured responses
 - Citations are automatically extracted when `for_citations=True`
 - Use sessions for maintaining context in conversational interactions

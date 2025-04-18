@@ -20,6 +20,7 @@ Key features include:
 - Unbiased reasoning mode (enabled by default).
 - **Deep Research Mode** for in-depth responses (configurable per query).
 - **Fast Mode** for quickest possible responses (configurable globally or per query).
+- **Reasoning Mode** for logical and structured responses (configurable per query).
 
 Both **Auto Prompt Augmentation** and **Unbiased Reasoning Mode** are enabled by default but can be configured using `set_config`.
 
@@ -47,10 +48,11 @@ When initializing AuxKnow, you can provide the following parameters:
 - `auto_query_restructuring` (bool): Enable automatic query restructuring. Default: False
 - `enable_unibiased_reasoning` (bool): Enable unbiased reasoning mode. Default: True
 - `fast_mode` (bool): Enable fast mode for quicker responses. Default: False
+- `enable_reasoning` (bool): Enable reasoning mode for logical and structured responses. Default: False
 
-#### Key Functionalities
+### Key Functionalities
 
-##### Querying (`ask`)
+#### Querying (`ask`)
 
 Sends a query to AuxKnow for an answer. Queries can optionally include additional context.
 
@@ -61,6 +63,7 @@ Sends a query to AuxKnow for an answer. Queries can optionally include additiona
 - `for_citations` (bool, optional): Whether to optimize response for citation generation. Default: False
 - `deep_research` (bool, optional): Whether to enable deep research mode. Default: False
 - `fast_mode` (bool, optional): When enabled, overrides other settings for fastest response. Default: False
+- `enable_reasoning` (bool, optional): Whether to enable reasoning mode for logical and structured responses. Default: False
 - `get_context_callback` (Callable[[str], str], optional): Function to load context for the question.
 - `update_context_callback` (Callable[[str, AuxKnowAnswer], None], optional): Function to update context with the answer.
 
@@ -75,7 +78,7 @@ Sends a query to AuxKnow for an answer. Queries can optionally include additiona
 
 ```python
 auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
-response = auxknow.ask("What is quantum computing?")
+response = auxknow.ask("What is quantum computing?", enable_reasoning=True)
 print(response.answer)
 ```
 
@@ -89,7 +92,7 @@ response = auxknow.ask("What is quantum computing?")
 print(response.answer)
 ```
 
-##### Querying with Streaming (`ask_stream`)
+### Querying with Streaming (`ask_stream`)
 
 Sends a query to AuxKnow for an answer with streaming responses.
 
@@ -99,6 +102,7 @@ Sends a query to AuxKnow for an answer with streaming responses.
 - `context` (optional): Additional information to provide context.
 - `deep_research` (optional): Enable deep research mode for in-depth responses.
 - `fast_mode` (optional): When enabled, overrides other settings to provide fastest possible response.
+- `enable_reasoning` (optional): Whether to enable reasoning mode for logical and structured responses. Default: False
 
 **Outputs:**
 
@@ -108,11 +112,28 @@ Sends a query to AuxKnow for an answer with streaming responses.
 
 ```python
 auxknow = AuxKnow(api_key="your_api_key", openai_api_key="your_openai_api_key")
-for response in auxknow.ask_stream("What is quantum computing?"):
+for response in auxknow.ask_stream("What is quantum computing?", enable_reasoning=True):
     print(response.answer)
 ```
 
-##### Deep Research Mode (`deep_research=True`)
+### Reasoning Mode (`enable_reasoning=True`)
+
+**Reasoning Mode** enables AuxKnow to provide logical, structured, and analytical responses. This mode is best suited for queries requiring logical explanations, decision-making support, or analytical problem-solving.
+
+**When to use:**
+
+- When logical and structured responses are required.
+- For analytical problem-solving or decision-making support.
+- For queries requiring reasoning-based explanations.
+
+**Example Usage:**
+
+```python
+response = auxknow.ask("Explain the ethical implications of AI in healthcare.", enable_reasoning=True)
+print(response.answer)
+```
+
+### Deep Research Mode (`deep_research=True`)
 
 **Deep Research Mode** enables AuxKnow to conduct thorough research and provide well-structured, highly detailed responses. This mode is best suited for complex, analytical, or research-heavy queries where in-depth responses are necessary.
 
@@ -129,7 +150,7 @@ response = auxknow.ask("Explain the fundamentals of quantum mechanics", deep_res
 print(response.answer)
 ```
 
-##### Session Management (`create_session`)
+### Session Management (`create_session`)
 
 Initiates a new session to group related queries and maintain context across multiple interactions.
 
@@ -141,12 +162,12 @@ Initiates a new session to group related queries and maintain context across mul
 
 ```python
 session = auxknow.create_session()
-response = session.ask("What is the speed of light?", deep_research=False)
+response = session.ask("What is the speed of light?", enable_reasoning=True)
 print(response.answer)
 session.close()
 ```
 
-##### Configuration (`set_config` and `get_config`)
+### Configuration (`set_config` and `get_config`)
 
 Modify or retrieve the current settings for AuxKnow.
 
@@ -156,17 +177,12 @@ Modify or retrieve the current settings for AuxKnow.
   - `auto_query_restructuring`: Enable automatic query improvement.
   - `auto_model_routing`: Enable automatic selection of the best model.
   - `answer_length_in_paragraphs`: Set the desired response length in paragraphs.
-  - `lines_per_paragraph`: Define the number of lines per paragraph.
+  - `lines_per_paragraph`: Define the number of lines per paragraph in responses.
   - `auto_prompt_augment`: Enable or disable automatic prompt augmentation (default: `True`).
   - `enable_unbiased_reasoning`: Enable or disable unbiased reasoning mode (default: `True`).
+  - `enable_reasoning`: Enable or disable reasoning mode (default: `False`).
   - `fast_mode`: When enabled, overrides other settings for fastest response (default: `False`).
   - `performance_logging_enabled`: Enable or disable performance logging (default: `False`).
-
-**Note:** When setting `answer_length_in_paragraphs` and `lines_per_paragraph`, the values are automatically capped at their maximum limits. If exceeded, they default to their standard values with a warning message.
-
-**Outputs for `get_config`:**
-
-- The current configuration object.
 
 **Example Usage:**
 
@@ -178,36 +194,13 @@ config = {
     "lines_per_paragraph": 5,
     "auto_prompt_augment": False,  # Disable prompt augmentation
     "enable_unbiased_reasoning": False,  # Disable unbiased reasoning
+    "enable_reasoning": True,  # Enable reasoning mode
     "fast_mode": True,  # Enable fast mode
     "performance_logging_enabled": True  # Enable performance logging
 }
 auxknow.set_config(config)
 current_config = auxknow.get_config()
-print(current_config.auto_query_restructuring)
-```
-
-##### Fast Mode
-
-**Fast Mode** configures AuxKnow to provide the quickest possible responses.
-
-**When to use:**
-
-- When response speed is critical.
-- For simple, straightforward queries.
-- In high-throughput scenarios.
-
-**Example Usage:**
-
-```python
-# Global configuration
-config = {
-    "fast_mode": True
-}
-auxknow.set_config(config)
-
-# Per-query configuration
-response = auxknow.ask("What is quantum computing?", fast_mode=True)
-print(response.answer)
+print(current_config.enable_reasoning)
 ```
 
 ---
@@ -234,6 +227,7 @@ Send a query while maintaining the session’s context.
 - `question` (str): The query string.
 - `deep_research` (bool, optional): Enable deep research mode. Default: False.
 - `fast_mode` (bool, optional): When enabled, overrides other settings for fastest response. Default: False.
+- `enable_reasoning` (bool, optional): Whether to enable reasoning mode for logical and structured responses. Default: False.
 - `get_context_callback` (Callable[[str], str], optional): Function to load context for the question.
 - `update_context_callback` (Callable[[str, AuxKnowAnswer], None], optional): Function to update context with the answer.
 
@@ -247,12 +241,12 @@ Send a query while maintaining the session’s context.
 
 ```python
 session = auxknow.create_session()
-response = session.ask("Explain the theory of relativity.", deep_research=False)
+response = session.ask("Explain the theory of relativity.", enable_reasoning=True)
 print(response.answer)
 session.close()
 ```
 
-##### Querying with Streaming within a Session (`session.ask_stream`)
+### Querying with Streaming within a Session (`session.ask_stream`)
 
 Send a query while maintaining the session’s context with streaming responses.
 
@@ -260,6 +254,7 @@ Send a query while maintaining the session’s context with streaming responses.
 
 - `question`: The query string.
 - `deep_research` (optional): Enable deep research mode.
+- `enable_reasoning` (optional): Whether to enable reasoning mode for logical and structured responses. Default: False
 
 **Outputs:**
 
@@ -269,12 +264,12 @@ Send a query while maintaining the session’s context with streaming responses.
 
 ```python
 session = auxknow.create_session()
-for response in session.ask_stream("Explain the theory of relativity.", deep_research=False):
+for response in session.ask_stream("Explain the theory of relativity.", enable_reasoning=True):
     print(response.answer)
 session.close()
 ```
 
-##### Closing a Session (`close`)
+### Closing a Session (`close`)
 
 Terminates the session, disallowing further queries.
 
@@ -301,7 +296,7 @@ Retrieves an existing session by its ID.
 ```python
 session = auxknow.get_session("session_id_here")
 if session:
-    response = session.ask("What is quantum computing?")
+    response = session.ask("What is quantum computing?", enable_reasoning=True)
 ```
 
 ---
