@@ -26,6 +26,7 @@ class AuxKnowConfig(BaseModel):
         enable_unibiased_reasoning (bool): Enables unbiased reasoning mode.
         fast_mode (bool): When True, optimizes for speed over quality.
         performance_logging_enabled (bool): Enables performance logging.
+        enable_reasoning (bool): Enables Sonar Reasoning model mode when set to True.
     """
 
     auto_model_routing: bool = Constants.DEFAULT_AUTO_MODEL_ROUTING_ENABLED
@@ -37,6 +38,8 @@ class AuxKnowConfig(BaseModel):
     fast_mode: bool = Constants.DEFAULT_FAST_MODE_ENABLED
     performance_logging_enabled: bool = Constants.DEFAULT_PERFORMANCE_LOGGING_ENABLED
     test_mode: bool = Constants.DEFAULT_TEST_MODE_ENABLED
+    enable_reasoning: bool = Constants.DEFAULT_ENABLE_REASONING
+
 
     def update(self, config: dict) -> None:
         """Update configuration with new values.

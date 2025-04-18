@@ -57,7 +57,7 @@ class LLMAdapter(AbstractClass):
             )
             return False
 
-    def _validate_message(msg: Any) -> bool:
+    def _validate_message(self, msg: Any) -> bool:
         """
         Validate the message format.
 
@@ -73,6 +73,7 @@ class LLMAdapter(AbstractClass):
             return False
         if not isinstance(msg["role"], str) or not isinstance(msg["content"], str):
             return False
+        return True
 
     @abstractmethod
     def get_available_models(
