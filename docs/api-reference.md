@@ -50,6 +50,8 @@ When initializing AuxKnow, you can provide the following parameters:
 - `fast_mode` (bool): Enable fast mode for quicker responses. Default: False
 - `enable_reasoning` (bool): Enable reasoning mode for logical and structured responses. Default: False
 
+---
+
 ### Key Functionalities
 
 #### Querying (`ask`)
@@ -92,6 +94,8 @@ response = auxknow.ask("What is quantum computing?")
 print(response.answer)
 ```
 
+---
+
 ### Querying with Streaming (`ask_stream`)
 
 Sends a query to AuxKnow for an answer with streaming responses.
@@ -116,39 +120,166 @@ for response in auxknow.ask_stream("What is quantum computing?", enable_reasonin
     print(response.answer)
 ```
 
-### Reasoning Mode (`enable_reasoning=True`)
+---
 
-**Reasoning Mode** enables AuxKnow to provide logical, structured, and analytical responses. This mode is best suited for queries requiring logical explanations, decision-making support, or analytical problem-solving.
+### Fast Mode
 
-**When to use:**
+**Fast Mode** configures AuxKnow to provide the quickest possible responses by prioritizing speed over complexity and depth.
 
-- When logical and structured responses are required.
-- For analytical problem-solving or decision-making support.
-- For queries requiring reasoning-based explanations.
+#### When to Use:
 
-**Example Usage:**
+- When response speed is more important than thoroughness.
+- For simple or high-throughput queries.
+- In real-time systems or interactive applications.
 
+#### How to Enable:
+
+**Globally via Config:**
 ```python
-response = auxknow.ask("Explain the ethical implications of AI in healthcare.", enable_reasoning=True)
+auxknow.set_config({"fast_mode": True})
+```
+
+**Per-Query:**
+```python
+response = auxknow.ask("Summarize the moon landing.", fast_mode=True)
 print(response.answer)
 ```
+
+#### Example Usage in Sessions:
+
+**Fast Mode in a Session:**
+```python
+# Create a session
+session = auxknow.create_session()
+
+# Query with Fast Mode enabled
+response = session.ask("What is the speed of light?", fast_mode=True)
+print(response.answer)
+
+# Close the session
+session.close()
+```
+
+**Streaming with Fast Mode in a Session:**
+```python
+# Create a session
+session = auxknow.create_session()
+
+# Stream responses with Fast Mode enabled
+for response in session.ask_stream("Explain quantum entanglement.", fast_mode=True):
+    print(response.answer)
+
+# Close the session
+session.close()
+```
+
+---
 
 ### Deep Research Mode (`deep_research=True`)
 
 **Deep Research Mode** enables AuxKnow to conduct thorough research and provide well-structured, highly detailed responses. This mode is best suited for complex, analytical, or research-heavy queries where in-depth responses are necessary.
 
-**When to use:**
+#### When to Use:
 
 - When detailed, research-backed explanations are required.
 - When analyzing complex topics.
 - When higher accuracy and comprehensive coverage are needed.
 
-**Example Usage:**
+#### How to Enable:
 
+**Globally via Config:**
 ```python
-response = auxknow.ask("Explain the fundamentals of quantum mechanics", deep_research=True)
+auxknow.set_config({"deep_research": True})
+```
+
+**Per-Query:**
+```python
+response = auxknow.ask("Explain the fundamentals of quantum mechanics.", deep_research=True)
 print(response.answer)
 ```
+
+#### Example Usage in Sessions:
+
+**Deep Research Mode in a Session:**
+```python
+# Create a session
+session = auxknow.create_session()
+
+# Query with Deep Research Mode enabled
+response = session.ask("What are the long-term effects of climate change?", deep_research=True)
+print(response.answer)
+
+# Close the session
+session.close()
+```
+
+**Streaming with Deep Research Mode in a Session:**
+```python
+# Create a session
+session = auxknow.create_session()
+
+# Stream responses with Deep Research Mode enabled
+for response in session.ask_stream("Describe the history of artificial intelligence.", deep_research=True):
+    print(response.answer)
+
+# Close the session
+session.close()
+```
+
+---
+
+### Reasoning Mode (`enable_reasoning=True`)
+
+**Reasoning Mode** enables AuxKnow to provide logical, structured, and analytical responses. This mode is best suited for queries requiring logical explanations, decision-making support, or analytical problem-solving.
+
+#### When to Use:
+
+- When logical and structured responses are required.
+- For analytical problem-solving or decision-making support.
+- For queries requiring reasoning-based explanations.
+
+#### How to Enable:
+
+**Globally via Config:**
+```python
+auxknow.set_config({"enable_reasoning": True})
+```
+
+**Per-Query:**
+```python
+response = auxknow.ask("Explain the ethical implications of AI in healthcare.", enable_reasoning=True)
+print(response.answer)
+```
+
+#### Example Usage in Sessions:
+
+**Reasoning Mode in a Session:**
+```python
+# Create a session
+session = auxknow.create_session()
+
+# Query with Reasoning Mode enabled
+response = session.ask("What are the benefits of renewable energy?", enable_reasoning=True)
+print(response.answer)
+
+# Close the session
+session.close()
+```
+
+**Streaming with Reasoning Mode in a Session:**
+```python
+# Create a session
+session = auxknow.create_session()
+
+# Stream responses with Reasoning Mode enabled
+for response in session.ask_stream("Explain the concept of blockchain technology.", enable_reasoning=True):
+    print(response.answer)
+
+# Close the session
+session.close()
+```
+
+---
 
 ### Session Management (`create_session`)
 
@@ -402,6 +533,8 @@ if not error:
 
 - Flexible querying with context and streaming options.
 - Deep Research Mode for detailed answers.
+- Fast Mode for quick responses.
+- Reasoning Mode for logical and structured responses.
 
 ### Session Management
 

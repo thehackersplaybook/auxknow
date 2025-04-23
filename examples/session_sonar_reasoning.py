@@ -19,7 +19,7 @@ def main():
             response = answer_engine.ask_stream(question, enable_reasoning=True)
 
             answer = "Answer: "
-            citations = ""
+            citations = "" 
             for partial_response in response:
                 if partial_response.answer and not partial_response.is_final:
                     answer += partial_response.answer

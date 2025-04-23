@@ -14,6 +14,7 @@ import re
 import sys
 import json
 import warnings
+import traceback
 from uuid import uuid4
 from typing import Generator, Optional, Union
 from collections.abc import Callable
@@ -805,6 +806,7 @@ class AuxKnow:
                 Constants.PING_TEST_RESPONSE(label, ping_test_response),
             )
 
+            print(ping_test_response,label)
             if ping_test_response.lower().find(Constants.PING_TEST_SEARCH) == -1:
                 Printer.print_red_message(Constants.ERROR_PING_TEST_FAILED(label=label))
                 return False
@@ -814,6 +816,7 @@ class AuxKnow:
             Printer.print_red_message(
                 Constants.ERROR_PING_TEST_FAILED_WITH_EXCEPTION(label=label, e=str(e))
             )
+            traceback.print_exc()
             return False
 
     def _print_initialization_status(self) -> None:
