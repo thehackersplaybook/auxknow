@@ -38,7 +38,7 @@ class Constants:
         lambda model, default_model: f"Invalid model name '{model}' received from model router. Defaulting to '{default_model}'."
     )
     ERROR_PING_TEST_FAILED: Callable[[str, Any], str] = (
-        lambda label, e: f"{label} ping test failed. Cannot use AuxKnow."
+        lambda label, e: f"{label} ping test failed.{e} Cannot use AuxKnow."
     )
     ERROR_PING_TEST_FAILED_WITH_EXCEPTION: Callable[[str, Any], str] = (
         lambda label, e: f"{label} ping test failed: {e}. Cannot use AuxKnow."
@@ -311,7 +311,10 @@ class Constants:
     """
     )
     PING_TEST_SYSTEM_PROMPT: str = (
-        "You are a test system. Respond with 'pong' to verify connectivity."
+        "Your task is to help the user verify connectivity with the LLM API. "
+        "Respond with 'pong' if the user sends 'ping'."
+        "Don't provide any other response or information."
+        "Don't provide any explanation or reasoning strictly respond with 'pong'."
     )
     PING_TEST_USER_PROMPT: str = "ping"
     PING_TEST_MAX_TOKENS: int = 10
