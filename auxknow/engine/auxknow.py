@@ -322,7 +322,6 @@ class AuxKnow:
             enable_unibiased_reasoning=enable_unibiased_reasoning,
             fast_mode=fast_mode,
             enable_reasoning=enable_reasoning,
-
             test_mode=test_mode,
         )
         self.sessions: dict[str, AuxKnowSession] = {}
@@ -684,7 +683,7 @@ class AuxKnow:
         except Exception as e:
             Printer.print_red_message(Constants.ERROR_ASK_QUESTION(e))
             return query
-        
+
     def _load_supported_model_names(self, enable_reasoning: bool) -> list[str]:
         """Load the supported model names.
 
@@ -696,19 +695,24 @@ class AuxKnow:
         """
         supported_model_names = []
         standard_models = [Constants.MODEL_SONAR, Constants.MODEL_SONAR_PRO]
-        reasoning_models = [Constants.MODEL_SONAR_REASONING, Constants.MODEL_SONAR_REASONING_PRO]
+        reasoning_models = [
+            Constants.MODEL_SONAR_REASONING,
+            Constants.MODEL_SONAR_REASONING_PRO,
+        ]
 
         if enable_reasoning:
             supported_model_names.extend(reasoning_models)
         else:
             supported_model_names.extend(standard_models)
-      
+
         if self.config.enable_unibiased_reasoning:
             supported_model_names.append(Constants.MODEL_R1_1776)
-        
+
         return supported_model_names
-    
-    def _get_supported_models_from_names(self, model_names: list[str]) -> list[SupportedAIModel]:
+
+    def _get_supported_models_from_names(
+        self, model_names: list[str]
+    ) -> list[SupportedAIModel]:
         """Get the supported models from the model names.
 
         Args:
@@ -723,10 +727,11 @@ class AuxKnow:
                 if model_name == supported_model.model:
                     supported_models.append(supported_model)
         return supported_models
-    
 
     @log_performance(enabled=lambda self: self.config.performance_logging_enabled)
-    def __route_query_to_model(self, query: str, enable_reasoning: bool = Constants.DEFAULT_ENABLE_REASONING) -> str:
+    def __route_query_to_model(
+        self, query: str, enable_reasoning: bool = Constants.DEFAULT_ENABLE_REASONING
+    ) -> str:
         """Route the query to the appropriate model based on the query.
 
         Args:
@@ -736,8 +741,12 @@ class AuxKnow:
         Returns:
             str: The model name to use for the query.
         """
-        model_names = self._load_supported_model_names(enable_reasoning=enable_reasoning)
-        supported_models = self._get_supported_models_from_names(model_names=model_names)
+        model_names = self._load_supported_model_names(
+            enable_reasoning=enable_reasoning
+        )
+        supported_models = self._get_supported_models_from_names(
+            model_names=model_names
+        )
 
         try:
             prompt = Constants.DEFAULT_AUXKNOW_MODEL_ROUTER_USER_PROMPT(
@@ -757,9 +766,7 @@ class AuxKnow:
 
             model = response.choices[0].message.content
 
-            if model.lower() not in [
-                m.model for m in supported_models
-            ]:
+            if model.lower() not in [m.model for m in supported_models]:
                 Printer.print_red_message(
                     Constants.ERROR_INVALID_MODEL(model, Constants.MODEL_SONAR)
                 )
@@ -806,7 +813,6 @@ class AuxKnow:
                 Constants.PING_TEST_RESPONSE(label, ping_test_response),
             )
 
-            print(ping_test_response,label)
             if ping_test_response.lower().find(Constants.PING_TEST_SEARCH) == -1:
                 Printer.print_red_message(Constants.ERROR_PING_TEST_FAILED(label=label))
                 return False
@@ -933,7 +939,11 @@ class AuxKnow:
         return list(set(citations))
 
     def _get_model(
-        self, question: str, deep_research: bool, fast_mode: bool = False, enable_reasoning: bool = False
+        self,
+        question: str,
+        deep_research: bool,
+        fast_mode: bool = False,
+        enable_reasoning: bool = False,
     ) -> str:
         """Get the model to use for the query.
 
@@ -946,7 +956,7 @@ class AuxKnow:
 
         fast_mode = self.config.fast_mode or fast_mode
         enable_reasoning = self.config.enable_reasoning or enable_reasoning
-        deep_research = deep_research # there is no global config for deep_research
+        deep_research = deep_research  # there is no global config for deep_research
 
         if (fast_mode and deep_research) or (fast_mode and enable_reasoning):
             Printer.verbose_logger(
@@ -964,7 +974,7 @@ class AuxKnow:
                     Constants.MESSAGE_AUTO_MODEL_ROUTING_OVERRIDE("Fast mode"),
                 )
             return Constants.DEFAULT_MODELS["fast_mode"]
-        
+
         if deep_research and enable_reasoning:
             Printer.verbose_logger(
                 self.verbose,
@@ -996,7 +1006,9 @@ class AuxKnow:
                 Printer.print_light_grey_message,
                 "Auto model routing is enabled. Delegating to router...",
             )
-            return self.__route_query_to_model(question, enable_reasoning=enable_reasoning)
+            return self.__route_query_to_model(
+                question, enable_reasoning=enable_reasoning
+            )
 
         Printer.verbose_logger(
             self.verbose,
@@ -1371,7 +1383,11 @@ class AuxKnow:
         return context
 
     def _get_ask_question_and_model(
-        self, question: str, deep_research: bool, fast_mode: bool, enable_reasoning: bool
+        self,
+        question: str,
+        deep_research: bool,
+        fast_mode: bool,
+        enable_reasoning: bool,
     ) -> tuple[str, str]:
         """
         Get the question and model for asking a question.
@@ -1392,7 +1408,10 @@ class AuxKnow:
             question = self.__restructure_query(question)
 
         model = self._get_model(
-            question=question, deep_research=deep_research, fast_mode=fast_mode, enable_reasoning=enable_reasoning
+            question=question,
+            deep_research=deep_research,
+            fast_mode=fast_mode,
+            enable_reasoning=enable_reasoning,
         )
 
         return question, model
