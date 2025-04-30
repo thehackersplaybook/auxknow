@@ -14,6 +14,7 @@ import re
 import sys
 import json
 import warnings
+import traceback
 from uuid import uuid4
 from typing import Generator, Optional, Union
 from collections.abc import Callable
@@ -174,6 +175,7 @@ class AuxKnowSession(BaseModel):
         question: str,
         deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
         fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
+        enable_reasoning=Constants.DEFAULT_ENABLE_REASONING,
         for_citations=Constants.DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED,
         get_context_callback: Callable[[str], str] = None,
         update_context_callback: Callable[[str, AuxKnowAnswer], None] = None,
@@ -184,6 +186,7 @@ class AuxKnowSession(BaseModel):
             question (str): The question to ask.
             deep_research (bool): Whether to enable deep research mode. (Default: False)
             fast_mode (bool): When True, overrides other settings for fastest response.
+            enable_reasoning (bool): Whether to enable reasoning mode. (Default: False)
             for_citations (bool): Whether to enable citation mode. (Defaults to DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED).
             get_context_callback (Callable[[str], str]): Callback to load context for the question.
             update_context_callback (Callable[[str, AuxKnowAnswer], None]): Callback to update context with the answer.
@@ -202,6 +205,7 @@ class AuxKnowSession(BaseModel):
             question=question,
             deep_research=deep_research,
             fast_mode=fast_mode,
+            enable_reasoning=enable_reasoning,
             get_context_callback=get_context_callback,
             update_context_callback=update_context_callback,
             for_citations=for_citations,
@@ -212,6 +216,7 @@ class AuxKnowSession(BaseModel):
         question: str,
         deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
         fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
+        enable_reasoning=Constants.DEFAULT_ENABLE_REASONING,
         for_citations=Constants.DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED,
         get_context_callback: Callable[[str], str] = None,
         update_context_callback: Callable[[str, AuxKnowAnswer], None] = None,
@@ -222,6 +227,7 @@ class AuxKnowSession(BaseModel):
             question (str): The question to ask.
             deep_research (bool): Whether to enable deep research mode. (Default: False)
             fast_mode (bool): When True, overrides other settings for fastest response.
+            enable_reasoning (bool): Whether to enable reasoning mode. (Default: False)
             get_context_callback (Callable[[str], str]): Callback to load context for the question.
             update_context_callback (Callable[[str, AuxKnowAnswer], None]): Callback to update context with the answer.
             for_citations (bool): Whether to enable citation mode. (Defaults to DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED).
@@ -240,6 +246,7 @@ class AuxKnowSession(BaseModel):
             question=question,
             deep_research=deep_research,
             fast_mode=fast_mode,
+            enable_reasoning=enable_reasoning,
             for_citations=for_citations,
             get_context_callback=get_context_callback,
             update_context_callback=update_context_callback,
@@ -280,6 +287,7 @@ class AuxKnow:
         enable_unibiased_reasoning: bool = Constants.DEFAULT_ENABLE_UNBIASED_REASONING,
         fast_mode: bool = Constants.DEFAULT_FAST_MODE_ENABLED,
         test_mode: bool = Constants.DEFAULT_TEST_MODE_ENABLED,
+        enable_reasoning: bool = Constants.DEFAULT_ENABLE_REASONING,
     ):
         """Initialize the AuxKnow instance.
 
@@ -295,6 +303,7 @@ class AuxKnow:
             auto_query_restructuring (bool): Whether to enable automatic query restructuring. Default is False.
             enable_unibiased_reasoning (bool): Whether to enable unbiased reasoning mode. Default is True.
             fast_mode (bool): Whether to enable fast mode. Default is False.
+            enable_reasoning (bool): Whether to enable reasoning mode. Default is False.
         """
         Printer.verbose_logger(
             verbose,
@@ -312,6 +321,8 @@ class AuxKnow:
             auto_query_restructuring=auto_query_restructuring,
             enable_unibiased_reasoning=enable_unibiased_reasoning,
             fast_mode=fast_mode,
+            enable_reasoning=enable_reasoning,
+
             test_mode=test_mode,
         )
         self.sessions: dict[str, AuxKnowSession] = {}
@@ -677,6 +688,9 @@ class AuxKnow:
     def _load_supported_model_names(self, enable_reasoning: bool) -> list[str]:
         """Load the supported model names.
 
+        Args:
+            enable_reasoning (bool): Whether to enable reasoning mode.
+
         Returns:
             list[str]: The list of supported model names.
         """
@@ -792,6 +806,7 @@ class AuxKnow:
                 Constants.PING_TEST_RESPONSE(label, ping_test_response),
             )
 
+            print(ping_test_response,label)
             if ping_test_response.lower().find(Constants.PING_TEST_SEARCH) == -1:
                 Printer.print_red_message(Constants.ERROR_PING_TEST_FAILED(label=label))
                 return False
@@ -801,6 +816,7 @@ class AuxKnow:
             Printer.print_red_message(
                 Constants.ERROR_PING_TEST_FAILED_WITH_EXCEPTION(label=label, e=str(e))
             )
+            traceback.print_exc()
             return False
 
     def _print_initialization_status(self) -> None:
@@ -833,6 +849,7 @@ class AuxKnow:
             - enable_unbiased_reasoning (int): Enable or disable unbiased reasoning mode (default: `True`).
             - fast_mode (bool): When enabled, overrides other settings for fastest response (default: `False`).
             - performance_logging_enabled (bool): Enable or disable performance logging (default: `False`).
+            - enable_reasoning (bool): Enable or disable reasoning mode (default: `False`).
         """
         return self.config.update(config=config)
 
@@ -924,11 +941,7 @@ class AuxKnow:
             question (str): The question being asked
             deep_research (bool): Whether deep research mode is enabled
             fast_mode (bool): Whether fast mode is enabled (overrides other settings)
-            reasoning (bool): Whether reasoning mode is enabled
-            reasoning_pro (bool): Whether reasoning pro mode is enabled
-
-        Returns:
-            str: The model name to use
+            enable_reasoning (bool): Whether reasoning mode is enabled
         """
 
         fast_mode = self.config.fast_mode or fast_mode
@@ -1023,6 +1036,7 @@ class AuxKnow:
         for_citations=Constants.DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED,
         deep_research: bool = Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
         fast_mode: bool = Constants.DEFAULT_FAST_MODE_ENABLED,
+        enable_reasoning: bool = Constants.DEFAULT_ENABLE_REASONING,
         get_context_callback: Callable[[str], str] = None,
         answer_id=str(uuid4()),
     ) -> AuxKnowAnswerPreparation:
@@ -1031,8 +1045,10 @@ class AuxKnow:
         Args:
             question (str): The question to ask
             context (str): Initial context
+            for_citations (bool): Whether to enable citation mode
             deep_research (bool): Deep research mode flag
             fast_mode (bool): Fast mode flag
+            enable_reasoning (bool): Reasoning mode flag
             get_context_callback (Callable): Context callback
 
         Returns:
@@ -1061,7 +1077,7 @@ class AuxKnow:
             )
 
         question, model = self._get_ask_question_and_model(
-            question, deep_research, fast_mode
+            question, deep_research, fast_mode, enable_reasoning
         )
 
         Printer.verbose_logger(
@@ -1103,16 +1119,33 @@ class AuxKnow:
         for_citations=Constants.DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED,
         deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
         fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
+        enable_reasoning: bool = Constants.DEFAULT_ENABLE_REASONING,
         get_context_callback: Callable[[str], str] = None,
         update_context_callback: Callable[[str, AuxKnowAnswer], None] = None,
     ) -> AuxKnowAnswer:
         answer_id = str(uuid4())
+        """Ask a question and get an answer.
+
+        Args:
+            question (str): The question to ask
+            context (str): Initial context
+            for_citations (bool): Whether to enable citation mode
+            deep_research (bool): Deep research mode flag
+            fast_mode (bool): Fast mode flag
+            enable_reasoning (bool): Reasoning mode flag
+            get_context_callback (Callable): Context callback
+            update_context_callback (Callable): Context update callback
+
+        Returns:
+            AuxKnowAnswer: The answer to the question
+        """
         try:
             preparation_response = self._prepare_ask_request(
                 question=question,
                 context=context,
                 deep_research=deep_research,
                 fast_mode=fast_mode,
+                enable_reasoning=enable_reasoning,
                 get_context_callback=get_context_callback,
                 for_citations=for_citations,
                 answer_id=answer_id,
@@ -1199,16 +1232,33 @@ class AuxKnow:
         for_citations=Constants.DEFAULT_ANSWER_MODE_FOR_CITATIONS_ENABLED,
         deep_research=Constants.DEFAULT_DEEP_RESEARCH_ENABLED,
         fast_mode=Constants.DEFAULT_FAST_MODE_ENABLED,
+        enable_reasoning: bool = Constants.DEFAULT_ENABLE_REASONING,
         get_context_callback: Callable[[str], str] = None,
         update_context_callback: Callable[[str, AuxKnowAnswer], None] = None,
     ) -> Generator[AuxKnowAnswer, None, None]:
         answer_id = str(uuid4())
+        """Ask a question and get a streaming answer.
+
+        Args:
+            question (str): The question to ask
+            context (str): Initial context
+            for_citations (bool): Whether to enable citation mode
+            deep_research (bool): Deep research mode flag
+            fast_mode (bool): Fast mode flag
+            enable_reasoning (bool): Reasoning mode flag
+            get_context_callback (Callable): Context callback
+            update_context_callback (Callable): Context update callback
+
+        Returns:
+            Generator[AuxKnowAnswer]: A generator that yields AuxKnowAnswer objects
+        """
         try:
             preparation_response = self._prepare_ask_request(
                 question=question,
                 context=context,
                 deep_research=deep_research,
                 fast_mode=fast_mode,
+                enable_reasoning=enable_reasoning,
                 get_context_callback=get_context_callback,
                 for_citations=for_citations,
                 answer_id=answer_id,
@@ -1321,7 +1371,7 @@ class AuxKnow:
         return context
 
     def _get_ask_question_and_model(
-        self, question: str, deep_research: bool, fast_mode: bool
+        self, question: str, deep_research: bool, fast_mode: bool, enable_reasoning: bool
     ) -> tuple[str, str]:
         """
         Get the question and model for asking a question.
@@ -1330,6 +1380,7 @@ class AuxKnow:
             question (str): The question to ask.
             deep_research (bool): Whether to enable deep research mode.
             fast_mode (bool): Whether to enable fast mode.
+            enable_reasoning (bool): Whether to enable reasoning mode.
 
         Returns:
             str: The question.
@@ -1341,7 +1392,7 @@ class AuxKnow:
             question = self.__restructure_query(question)
 
         model = self._get_model(
-            question=question, deep_research=deep_research, fast_mode=fast_mode
+            question=question, deep_research=deep_research, fast_mode=fast_mode, enable_reasoning=enable_reasoning
         )
 
         return question, model
