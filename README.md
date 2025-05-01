@@ -103,6 +103,10 @@ AuxKnow is designed to cater to a wide range of scenarios, including:
 
 # Changelog
 
+## 🚀 v0.0.20 - Fix ping test bug.
+
+- 🎯 Improve ping test system prompt to fix errors with response formats which was failing the ping test.
+
 ## 🚀 v0.0.19 - Add support for reasoning and deep reasoning models.
 
 - 🎯 Added support for Perplexity Sonar Reasoning and Sonar Reasoning Pro.
