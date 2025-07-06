@@ -1,6 +1,6 @@
 # AuxKnow 🛸
 
-<p align="center"><img src="https://i.ibb.co/8mX2Cqm/cover-art.png" width="230" alt="Khoj Logo"></p>
+<p align="center"><img src="https://i.ibb.co/8mX2Cqm/cover-art.png" width="230" alt="AuxKnow Logo"></p>
 
 <div align="center">
 
