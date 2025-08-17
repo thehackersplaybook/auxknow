@@ -9,10 +9,12 @@ Copyright (c) 2025 The Hackers Playbook
 License: AGPLv3
 """
 
-from abc import ABC as AbstractClass, abstractmethod
-from typing import List, Dict, Union, Optional, Any, Generator
-from ..common.printer import Printer
+from abc import ABC as AbstractClass
+from abc import abstractmethod
+from typing import Any, Dict, Generator, List, Optional, Union
+
 from ..common.constants import Constants
+from ..common.printer import Printer
 
 
 class LLMAdapter(AbstractClass):

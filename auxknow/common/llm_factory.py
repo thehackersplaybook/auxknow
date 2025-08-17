@@ -1,6 +1,9 @@
+from typing import Optional
+
 from openai import OpenAI
-from .printer import Printer
+
 from .constants import Constants
+from .printer import Printer
 
 
 class LLMFactory:
@@ -11,7 +14,7 @@ class LLMFactory:
     @staticmethod
     def get_openai_client(
         api_key: str, base_url=None, verbose=Constants.DEFAULT_VERBOSE_ENABLED
-    ) -> OpenAI:
+    ) -> Optional[OpenAI]:
         """Get OpenAI client instance.
 
         Args:

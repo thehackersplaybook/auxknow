@@ -1,5 +1,5 @@
 from auxknow.common.constants import Constants, AUXKNOW_INTELLIGENCE_CONSTANT, SupportedAIModel
-
+from dotenv import load_dotenv
 
 def test_constants_initialization():
     assert Constants is not None
@@ -13,7 +13,7 @@ def test_api_constants():
     assert Constants.ENV_OPENAI_API_KEY == "OPENAI_API_KEY"
     assert Constants.ENV_FILE == ".env"
 
-
+load_dotenv(".env.test")
 def test_error_constants():
     assert (
         Constants.ERROR_DEFAULT
@@ -261,12 +261,12 @@ def test_message_constants():
 def test_ping_test_constants():
     assert (
         Constants.PING_TEST_SYSTEM_PROMPT
-        == "You are a test system. Respond with 'pong' to verify connectivity."
+        == "Your task is to help the user verify connectivity with the LLM API. Respond with 'pong' if the user sends 'ping'.Don't provide any other response or information.Don't provide any explanation or reasoning strictly respond with 'pong'."
     )
     assert Constants.PING_TEST_USER_PROMPT == "ping"
     assert Constants.PING_TEST_MAX_TOKENS == 10
     assert Constants.PING_TEST_SEARCH == "pong"
-    assert "Ping Test Response" in Constants.PING_TEST_RESPONSE("test", "response")
+    assert "Ping Test Response" in Constants.PING_TEST_RESPONSE_TEMPLATE("test", "response")
 
 
 def test_search_engine_constants():

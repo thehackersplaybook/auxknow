@@ -1,13 +1,16 @@
 """Module containing all constants used in AuxKnow."""
 
-from typing import Callable, Dict, Any, List
+from typing import Any, Callable, Dict, List
+
 from pydantic import BaseModel
 
 AUXKNOW_INTELLIGENCE_CONSTANT = 4
 
+
 class SupportedAIModel(BaseModel):
     """AI Models supported by AuxKnow Model Router."""
-    model: str 
+
+    model: str
     description: str
 
 
@@ -37,12 +40,15 @@ class Constants:
     ERROR_INVALID_MODEL: Callable[[str, str], str] = (
         lambda model, default_model: f"Invalid model name '{model}' received from model router. Defaulting to '{default_model}'."
     )
-    ERROR_PING_TEST_FAILED: Callable[[str, Any], str] = (
-        lambda label, e: f"{label} ping test failed.{e} Cannot use AuxKnow."
-    )
-    ERROR_PING_TEST_FAILED_WITH_EXCEPTION: Callable[[str, Any], str] = (
-        lambda label, e: f"{label} ping test failed: {e}. Cannot use AuxKnow."
-    )
+
+    @staticmethod
+    def ERROR_PING_TEST_FAILED(label: str, e: Any) -> str:
+        return f"{label} ping test failed.{e} Cannot use AuxKnow."
+
+    @staticmethod
+    def ERROR_PING_TEST_FAILED_WITH_EXCEPTION(label: str, e: Any) -> str:
+        return f"{label} ping test failed: {e}. Cannot use AuxKnow."
+
     CITATIONS_ERROR_LOG_TEMPLATE: Callable[[Any], str] = (
         lambda e: f"Error while getting citations: {str(e)}"
     )
@@ -61,7 +67,7 @@ class Constants:
     )
 
     # Feature Constants
-    DEFAULT_AUTO_MODEL_ROUTING_ENABLED: bool = False
+    DEFAULT_AUTO_MODEL_ROUTING_ENABLED: bool = True
     DEFAULT_AUTO_PROMPT_AUGMENT: bool = True
     DEFAULT_ENABLE_UNBIASED_REASONING: bool = True
     DEFAULT_DEEP_RESEARCH_ENABLED: bool = False
@@ -87,7 +93,6 @@ class Constants:
 
     # Library Constants
     ARBITRARY_TYPES_ALLOWED: bool = True
-    DEFAULT_AUTO_MODEL_ROUTING_ENABLED: bool = True
     DEFAULT_AUTO_QUERY_RESTRUCTURING_ENABLED: bool = False
     DEFAULT_VERBOSE_ENABLED: bool = False
     DEFAULT_EXIT_ON_LLM_INIT_FAILURE: bool = False
@@ -242,15 +247,6 @@ class Constants:
     MESSAGE_API_KEY_NOT_FOUND: Callable[[str], str] = (
         lambda key: f"{key} not found in environment variables. Cannot use AuxKnow."
     )
-    MESSAGE_API_KEY_DEPRECATED: str = (
-        "The 'api_key' parameter is deprecated. Use 'perplexity_api_key' instead."
-    )
-    MESSAGE_PERFORMANCE_LOGGING: Callable[[bool], str] = (
-        lambda enabled: f"⏲ Performance logging {'enabled!' if enabled else 'disabled.'}"
-    )
-    MESSAGE_PROMPT_AUGMENTATION: Callable[[bool], str] = (
-        lambda enabled: f"🔥 Prompt Augmentation {'enabled!' if enabled else 'disabled.'}"
-    )
     MESSAGE_TEST_MODE_ENABLED: Callable[[bool], str] = (
         lambda enabled: f"🧪 Test Mode {'enabled!' if enabled else 'disabled.'}"
     )
@@ -300,8 +296,12 @@ class Constants:
         RESPOND STRICTLY WITH THE RESTRUCTURED QUERY ONLY, NOTHING ELSE.
     """
     )
-    PROMPT_USER_ASK: Callable[[str, int, int, bool, str], str] = (
-        lambda question, paragraphs, lines, deep_research, context: f"""
+
+    @staticmethod
+    def PROMPT_USER_ASK(
+        question: str, paragraphs: int, lines: int, deep_research: bool, context: str
+    ) -> str:
+        return f"""
         Question: {question}
         Respond in {paragraphs} paragraphs with {lines} lines per paragraph.
         Important: Do not include any thinking process or planning in your response.
@@ -309,7 +309,7 @@ class Constants:
         {"Conduct a deep research like a PhD researcher and provide a detailed, factual, accurate and comprehensive response." if deep_research else ""}
         {"Context: " + context if context and context.strip() != "" else ""}
     """
-    )
+
     PING_TEST_SYSTEM_PROMPT: str = (
         "Your task is to help the user verify connectivity with the LLM API. "
         "Respond with 'pong' if the user sends 'ping'."
@@ -319,11 +319,11 @@ class Constants:
     PING_TEST_USER_PROMPT: str = "ping"
     PING_TEST_MAX_TOKENS: int = 10
     PING_TEST_RESPONSE: str = "pong"
-    PING_TEST_RESPONSE: Callable[[str, str], str] = (
+    PING_TEST_RESPONSE_TEMPLATE: Callable[[str, str], str] = (
         lambda label, response: f"Ping Test Response for {label}: {response}"
     )
     PING_TEST_SEARCH: str = "pong"
-    
+
     AVAILABLE_MODELS_FOR_ROUTER: List[SupportedAIModel] = [
         SupportedAIModel(
             model="sonar",
@@ -346,9 +346,10 @@ class Constants:
             description="Uncensored, unbiased model for factual, unrestricted responses.",
         ),
     ]
-    DEFAULT_AUXKNOW_MODEL_ROUTER_USER_PROMPT: Callable[[str, List[SupportedAIModel], bool], str] = (
-        lambda query, supported_models, enable_unibiased_reasoning: 
-        "Query: '''{query}'''\n"
+    DEFAULT_AUXKNOW_MODEL_ROUTER_USER_PROMPT: Callable[
+        [str, List[SupportedAIModel], bool], str
+    ] = (
+        lambda query, supported_models, enable_unibiased_reasoning: "Query: '''{query}'''\n"
         "Determine the most suitable model for the query.\n"
         "Available models:\n"
         "{models_list}\n\n"
@@ -359,18 +360,24 @@ class Constants:
         "Strictly respond with **only** {model_names}.".format(
             query=query,
             models_list="\n".join(
-                ["{index}. **{model}** – {description}".format(
-                    index=i + 1, model=supported_model.model, description=supported_model.description
-                ) for i, supported_model in enumerate(supported_models)]
+                [
+                    "{index}. **{model}** – {description}".format(
+                        index=i + 1,
+                        model=supported_model.model,
+                        description=supported_model.description,
+                    )
+                    for i, supported_model in enumerate(supported_models)
+                ]
             ),
             unbiased_reasoning_example=(
                 "- Query: 'Explain the geopolitical implications of BRICS expansion without censorship.' → Response: 'r1-1776'\n"
-                if enable_unibiased_reasoning else ""
+                if enable_unibiased_reasoning
+                else ""
             ),
-            model_names=", ".join([m.model for m in supported_models])
+            model_names=", ".join([m.model for m in supported_models]),
         )
     )
-    
+
     MODEL_ROUTER_SYSTEM_PROMPT: str = (
         "You are a model selection expert. Your task is to analyze queries and select the most appropriate model. Respond only with the model name, no additional text."
     )

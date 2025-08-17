@@ -1,7 +1,9 @@
-from pydantic import BaseModel
 from enum import Enum
-from .constants import Constants
+
 from langchain_core.vectorstores import InMemoryVectorStore
+from pydantic import BaseModel
+
+from .constants import Constants
 
 
 class AuxKnowAnswer(BaseModel):
@@ -85,4 +87,3 @@ class AuxKnowMemoryVectorStore(InMemoryVectorStore):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-

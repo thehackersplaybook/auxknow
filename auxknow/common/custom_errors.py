@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -14,7 +15,7 @@ class AuxKnowErrorCodes:
 class AuxKnowException(Exception):
     """Base exception for AuxKnow."""
 
-    def __init__(self, message: str, error_code: int = None):
+    def __init__(self, message: str, error_code: Optional[int] = None):
         self.error_code = error_code
         super().__init__(message)
 

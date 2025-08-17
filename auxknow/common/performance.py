@@ -1,8 +1,9 @@
-import time
 import functools
-from .printer import Printer
-from .models import TimeUnit
+import time
+
 from .constants import Constants
+from .models import TimeUnit
+from .printer import Printer
 
 
 def _convert_time(seconds: float, unit: TimeUnit) -> float:

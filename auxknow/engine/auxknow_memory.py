@@ -11,13 +11,17 @@ License: AGPLv3
 """
 
 import os
+from typing import Optional
 from uuid import uuid4
+
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
+from pydantic import SecretStr
+
 from ..common.constants import Constants
-from ..common.printer import Printer
 from ..common.custom_errors import AuxKnowMemoryException
 from ..common.models import AuxKnowMemoryVectorStore
+from ..common.printer import Printer
 
 
 class AuxKnowMemory:
@@ -34,7 +38,7 @@ class AuxKnowMemory:
 
     def __init__(
         self,
-        openai_api_key: str = None,
+        openai_api_key: Optional[str] = None,
         verbose=Constants.DEFAULT_VERBOSE_ENABLED,
         session_id: str = str(uuid4()),
     ):
@@ -69,7 +73,9 @@ class AuxKnowMemory:
         )
 
         self._store: AuxKnowMemoryVectorStore = AuxKnowMemoryVectorStore(
-            OpenAIEmbeddings(api_key=openai_api_key)
+            OpenAIEmbeddings(
+                api_key=SecretStr(openai_api_key) if openai_api_key else None
+            )
         )
 
         Printer.verbose_logger(

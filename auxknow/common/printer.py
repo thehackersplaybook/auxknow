@@ -1,5 +1,7 @@
-from rich import print as rprint
 from enum import Enum
+from typing import Callable
+
+from rich import print as rprint
 
 
 class PrinterColor(Enum):
@@ -213,7 +215,9 @@ class Printer:
     """Printer class for printing messages."""
 
     @staticmethod
-    def verbose_logger(verbose: bool, print_method: callable, message: str):
+    def verbose_logger(
+        verbose: bool, print_method: Callable[[str], None], message: str
+    ):
         """Execute a print method only if verbose is True and message is not empty.
 
         Args:

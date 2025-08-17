@@ -6,6 +6,7 @@ defaults, and configuration updates.
 """
 
 from pydantic import BaseModel
+
 from ..common.constants import Constants
 from ..common.printer import Printer
 
@@ -40,7 +41,6 @@ class AuxKnowConfig(BaseModel):
     test_mode: bool = Constants.DEFAULT_TEST_MODE_ENABLED
     enable_reasoning: bool = Constants.DEFAULT_ENABLE_REASONING
 
-
     def update(self, config: dict) -> None:
         """Update configuration with new values.
 
@@ -70,7 +70,7 @@ class AuxKnowConfig(BaseModel):
             if hasattr(self, key):
                 setattr(self, key, value)
 
-    def copy(self) -> "AuxKnowConfig":
+    def copy(self, **kwargs) -> "AuxKnowConfig":
         """Create a deep copy of the configuration.
 
         Returns:

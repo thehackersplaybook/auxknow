@@ -3,11 +3,12 @@ Stream processor module for handling streaming responses from the API.
 """
 
 import re
-from typing import Optional, Generator, Any, Callable, List
 from dataclasses import dataclass, field
-from .models import AuxKnowAnswer
-from ..common.printer import Printer
+from typing import Any, Callable, Generator, List, Optional
+
 from ..common.constants import Constants
+from ..common.printer import Printer
+from .models import AuxKnowAnswer
 
 
 @dataclass

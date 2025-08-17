@@ -1,7 +1,8 @@
 import warnings
+
+from .common.models import AuxKnowAnswer
 from .engine.auxknow import AuxKnow, AuxKnowSession
 from .engine.auxknow_config import AuxKnowConfig
-from .common.models import AuxKnowAnswer
 from .version import AuxKnowVersion
 
 warnings.filterwarnings(

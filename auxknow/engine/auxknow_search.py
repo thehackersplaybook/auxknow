@@ -10,10 +10,12 @@ License: AGPLv3
 
 import traceback
 from typing import Union
+
 from langchain_community.tools import DuckDuckGoSearchResults
+
+from ..common.constants import Constants
 from ..common.models import AuxKnowSearchItem, AuxKnowSearchResults
 from ..common.printer import Printer
-from ..common.constants import Constants
 
 
 class AuxKnowSearch:
