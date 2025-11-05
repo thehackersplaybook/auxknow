@@ -28,6 +28,7 @@ from ..common.llm_factory import LLMFactory
 from ..common.models import AuxKnowAnswer, AuxKnowAnswerPreparation
 from ..common.performance import log_performance
 from ..common.printer import Printer
+from ..common.provider_factory import ProviderFactory, AIProvider
 from ..common.stream_processor import StreamProcessor
 from ..version import AuxKnowVersion
 from .auxknow_config import AuxKnowConfig
@@ -286,6 +287,8 @@ class AuxKnow:
         fast_mode: bool = Constants.DEFAULT_FAST_MODE_ENABLED,
         test_mode: bool = Constants.DEFAULT_TEST_MODE_ENABLED,
         enable_reasoning: bool = Constants.DEFAULT_ENABLE_REASONING,
+        config_file_path: Optional[str] = None,
+        **kwargs,
     ):
         """Initialize the AuxKnow instance.
 
@@ -302,6 +305,7 @@ class AuxKnow:
             enable_unibiased_reasoning (bool): Whether to enable unbiased reasoning mode. Default is True.
             fast_mode (bool): Whether to enable fast mode. Default is False.
             enable_reasoning (bool): Whether to enable reasoning mode. Default is False.
+            config_file_path (Optional[str]): Path to custom configuration file. If provided, settings will be loaded from this file.
         """
         Printer.verbose_logger(
             verbose,
@@ -315,16 +319,37 @@ class AuxKnow:
             self.check_llm_factory_support(llm_factory=llm_factory, test_mode=test_mode)
 
         self.verbose = verbose
-        self.config = AuxKnowConfig(
-            auto_model_routing=auto_model_routing,
-            auto_prompt_augment=auto_prompt_augment,
-            performance_logging_enabled=performance_logging_enabled,
-            auto_query_restructuring=auto_query_restructuring,
-            enable_unibiased_reasoning=enable_unibiased_reasoning,
-            fast_mode=fast_mode,
-            enable_reasoning=enable_reasoning,
-            test_mode=test_mode,
-        )
+        
+        # Store original parameter values before loading config
+        param_overrides = {
+            'auto_model_routing': auto_model_routing,
+            'auto_prompt_augment': auto_prompt_augment,
+            'performance_logging_enabled': performance_logging_enabled,
+            'auto_query_restructuring': auto_query_restructuring,
+            'enable_unibiased_reasoning': enable_unibiased_reasoning,
+            'fast_mode': fast_mode,
+            'enable_reasoning': enable_reasoning,
+            'test_mode': test_mode,
+        }
+        
+        # Load configuration from file if provided, otherwise use parameters
+        if config_file_path:
+            self.config = AuxKnowConfig.load_from_file(config_file_path, verbose=verbose)
+            
+            # Apply parameter overrides (explicit parameters take precedence over config file)
+            for param_name, param_value in param_overrides.items():
+                setattr(self.config, param_name, param_value)
+        else:
+            self.config = AuxKnowConfig(
+                auto_model_routing=auto_model_routing,
+                auto_prompt_augment=auto_prompt_augment,
+                performance_logging_enabled=performance_logging_enabled,
+                auto_query_restructuring=auto_query_restructuring,
+                enable_unibiased_reasoning=enable_unibiased_reasoning,
+                fast_mode=fast_mode,
+                enable_reasoning=enable_reasoning,
+                test_mode=test_mode,
+            )
         self.sessions: dict[str, AuxKnowSession] = {}
         self.initialized = False
 
@@ -700,7 +725,7 @@ class AuxKnow:
             return query
 
     def _load_supported_model_names(self, enable_reasoning: bool) -> list[str]:
-        """Load the supported model names.
+        """Load the supported model names from both providers.
 
         Args:
             enable_reasoning (bool): Whether to enable reasoning mode.
@@ -709,19 +734,35 @@ class AuxKnow:
             list[str]: The list of supported model names.
         """
         supported_model_names = []
+        
+        # Perplexity models
         standard_models = [Constants.MODEL_SONAR, Constants.MODEL_SONAR_PRO]
         reasoning_models = [
             Constants.MODEL_SONAR_REASONING,
             Constants.MODEL_SONAR_REASONING_PRO,
         ]
+        
+        # OpenAI models
+        openai_standard_models = ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"]
+        openai_reasoning_models = ["r1-1776"]  # OpenAI's reasoning model
 
         if enable_reasoning:
             supported_model_names.extend(reasoning_models)
+            supported_model_names.extend(openai_reasoning_models)
         else:
             supported_model_names.extend(standard_models)
+            # Include OpenAI models for standard routing if clients are available
+            if self.llm is not None:
+                supported_model_names.extend(openai_standard_models)
 
         if self.config.enable_unibiased_reasoning:
             supported_model_names.append(Constants.MODEL_R1_1776)
+
+        # Also include any custom models from config
+        custom_models = list(self.config.custom_models.values())
+        for model in custom_models:
+            if model not in supported_model_names:
+                supported_model_names.append(model)
 
         return supported_model_names
 
@@ -907,10 +948,25 @@ class AuxKnow:
             messages: List[Dict[str, Any]] = [
                 Constants.MESSAGES_TEMPLATE(Constants.ROLE_USER, user_prompt),
             ]
-            if not self.llm:
+            # Get the appropriate client based on the model for prompt augmentation
+            model = self.config.get_model_for_task("prompt_augmentation")
+            try:
+                client, provider = ProviderFactory.get_client_for_model(
+                    model, self.llm, self.client
+                )
+                
+                # Log API call details
+                Printer.verbose_logger(
+                    self.verbose,
+                    Printer.print_cyan_message,
+                    f"🔌 API Call: Provider={provider.value.upper()}, Model={model}, Type=PROMPT_AUGMENTATION"
+                )
+                
+            except ValueError:
                 return ""
-            response = self.llm.chat.completions.create(
-                model=Constants.DEFAULT_MODELS["prompt_augmentation"],
+                
+            response = client.chat.completions.create(
+                model=model,
                 messages=messages,  # type: ignore
                 temperature=Constants.DEFAULT_PROMPT_AUGMENTATION_TEMPERATURE,
             )
@@ -946,6 +1002,132 @@ class AuxKnow:
         except Exception as e:
             Printer.print_red_message(Constants.ERROR_AUGMENT_PROMPT(e))
             return user_prompt
+
+    def _convert_messages_to_input(self, messages: List[Dict[str, Any]]) -> str:
+        """Convert chat messages format to input string for Responses API.
+        
+        Args:
+            messages: List of message dictionaries with 'role' and 'content' keys
+            
+        Returns:
+            str: Combined input string for Responses API
+        """
+        input_parts = []
+        for message in messages:
+            role = message.get('role', '')
+            content = message.get('content', '')
+            if role == 'system':
+                input_parts.append(f"System: {content}")
+            elif role == 'user':
+                input_parts.append(f"User: {content}")
+            elif role == 'assistant':
+                input_parts.append(f"Assistant: {content}")
+            else:
+                input_parts.append(content)
+        
+        return "\n\n".join(input_parts)
+
+    def _extract_text_from_responses_output(self, output) -> str:
+        """Extract text content from OpenAI Responses API output.
+        
+        Args:
+            output: The output from Responses API (list of response items)
+            
+        Returns:
+            str: Combined text content
+        """
+        if not output:
+            return ""
+        
+        text_parts = []
+        
+        # Handle list of output items
+        if isinstance(output, list):
+            for item in output:
+                # Handle ResponseOutputMessage objects with content array
+                if hasattr(item, 'content') and isinstance(item.content, list):
+                    for content_item in item.content:
+                        if hasattr(content_item, 'text') and content_item.text:
+                            text_parts.append(content_item.text)
+                # Handle ResponseOutputText objects directly
+                elif hasattr(item, 'text') and item.text:
+                    text_parts.append(item.text)
+                # Handle dict format
+                elif isinstance(item, dict):
+                    if 'content' in item and isinstance(item['content'], list):
+                        for content_item in item['content']:
+                            if isinstance(content_item, dict) and 'text' in content_item:
+                                text_parts.append(content_item['text'])
+                    elif 'text' in item:
+                        text_parts.append(item['text'])
+                # Handle string items directly
+                elif isinstance(item, str):
+                    text_parts.append(item)
+        # Handle single item (not a list)
+        elif hasattr(output, 'content') and isinstance(output.content, list):
+            for content_item in output.content:
+                if hasattr(content_item, 'text') and content_item.text:
+                    text_parts.append(content_item.text)
+        elif hasattr(output, 'text') and output.text:
+            text_parts.append(output.text)
+        elif isinstance(output, str):
+            text_parts.append(output)
+        
+        return "\n".join(text_parts) if text_parts else ""
+
+    def _extract_citations_from_responses_output(self, output) -> list[str]:
+        """Extract citations from OpenAI Responses API output.
+        
+        Args:
+            output: The output from Responses API (list of response items)
+            
+        Returns:
+            list[str]: List of citation URLs
+        """
+        citations = []
+        if not output:
+            return citations
+        
+        # Handle list of output items
+        if isinstance(output, list):
+            for item in output:
+                # Handle ResponseOutputMessage objects with content array
+                if hasattr(item, 'content') and isinstance(item.content, list):
+                    for content_item in item.content:
+                        if hasattr(content_item, 'annotations') and content_item.annotations:
+                            for annotation in content_item.annotations:
+                                if hasattr(annotation, 'url') and annotation.url:
+                                    citations.append(annotation.url)
+                # Handle ResponseOutputText objects with annotations directly
+                elif hasattr(item, 'annotations') and item.annotations:
+                    for annotation in item.annotations:
+                        if hasattr(annotation, 'url') and annotation.url:
+                            citations.append(annotation.url)
+                # Handle dict format
+                elif isinstance(item, dict):
+                    if 'content' in item and isinstance(item['content'], list):
+                        for content_item in item['content']:
+                            if isinstance(content_item, dict) and 'annotations' in content_item:
+                                for annotation in content_item['annotations']:
+                                    if isinstance(annotation, dict) and 'url' in annotation:
+                                        citations.append(annotation['url'])
+                    elif 'annotations' in item:
+                        for annotation in item['annotations']:
+                            if isinstance(annotation, dict) and 'url' in annotation:
+                                citations.append(annotation['url'])
+        # Handle single item (not a list)
+        elif hasattr(output, 'content') and isinstance(output.content, list):
+            for content_item in output.content:
+                if hasattr(content_item, 'annotations') and content_item.annotations:
+                    for annotation in content_item.annotations:
+                        if hasattr(annotation, 'url') and annotation.url:
+                            citations.append(annotation.url)
+        elif hasattr(output, 'annotations') and output.annotations:
+            for annotation in output.annotations:
+                if hasattr(annotation, 'url') and annotation.url:
+                    citations.append(annotation.url)
+        
+        return list(set(citations)) if citations else []
 
     def _extract_citations_from_response(self, response: dict) -> list[str]:
         """Extract citations from the response.
@@ -1030,7 +1212,7 @@ class AuxKnow:
                 Printer.print_light_grey_message,
                 Constants.MESSAGE_FAST_MODE_OVERRIDE,
             )
-            return Constants.DEFAULT_MODELS["fast_mode"]
+            return self.config.get_model_for_task("fast_mode")
 
         if fast_mode:
             if self.config.auto_model_routing:
@@ -1039,15 +1221,7 @@ class AuxKnow:
                     Printer.print_light_grey_message,
                     Constants.MESSAGE_AUTO_MODEL_ROUTING_OVERRIDE("Fast mode"),
                 )
-            return Constants.DEFAULT_MODELS["fast_mode"]
-
-        if deep_research and enable_reasoning:
-            Printer.verbose_logger(
-                self.verbose,
-                Printer.print_light_grey_message,
-                Constants.MESSAGE_DEEP_RESEARCH_REASONING_OVERRIDE,
-            )
-            return Constants.DEFAULT_MODELS["reasoning"]
+            return self.config.get_model_for_task("fast_mode")
 
         if deep_research:
             if self.config.auto_model_routing:
@@ -1061,10 +1235,10 @@ class AuxKnow:
                     Printer.print_light_grey_message,
                     "Using Deep Research model.",
                 )
-            return Constants.DEFAULT_MODELS["deep_research"]
+            return self.config.get_model_for_task("deep_research")
 
         if enable_reasoning and not (self.config.auto_model_routing):
-            return Constants.DEFAULT_MODELS["reasoning"]
+            return self.config.get_model_for_task("reasoning")
 
         if self.config.auto_model_routing:
             Printer.verbose_logger(
@@ -1081,7 +1255,7 @@ class AuxKnow:
             Printer.print_light_grey_message,
             "No mode flags triggered. Using Standard model.",
         )
-        return Constants.DEFAULT_MODELS["standard"]
+        return self.config.get_model_for_task("standard")
 
     def _build_user_ask_prompt(
         self,
@@ -1245,28 +1419,83 @@ class AuxKnow:
                 preparation_response.question,
             )
 
-            if not self.client:
+            # Get the appropriate client based on the model
+            try:
+                client, provider = ProviderFactory.get_client_for_model(
+                    model, self.llm, self.client
+                )
+                
+                # Check if this is a Responses-only model
+                is_responses_only = (provider == AIProvider.OPENAI and ProviderFactory.is_responses_only_model(model))
+                
+                # Log API call details
+                api_type = "RESPONSES" if is_responses_only else "NON-STREAMING"
+                Printer.verbose_logger(
+                    self.verbose,
+                    Printer.print_cyan_message,
+                    f"🔌 API Call: Provider={provider.value.upper()}, Model={model}, Type={api_type}"
+                )
+                
+            except ValueError as e:
                 return AuxKnowAnswer(
                     id=answer_id,
-                    answer="Client not initialized",
+                    answer=str(e),
                     citations=[],
                     is_final=True,
                 )
-            response = self.client.chat.completions.create(
-                messages=messages, model=model, stream=False  # type: ignore
-            )
 
-            # Type narrowing for non-streaming response
-            from openai.types.chat import ChatCompletion
-
-            if isinstance(response, ChatCompletion):
-                clean_answer = self._clean_ask_response(
-                    response.choices[0].message.content or ""
+            # Use appropriate API based on model type
+            if is_responses_only:
+                # Convert messages to input string for Responses API
+                input_text = self._convert_messages_to_input(messages)
+                response = client.responses.create(
+                    model=model,
+                    input=input_text,
+                    stream=False,
+                    tools=[{"type": "web_search_preview"}]  # Required for deep research models
                 )
-                citations = self._extract_citations_from_response(response.model_dump())  # type: ignore
             else:
-                clean_answer = "Error: Unexpected response type"
-                citations = []
+                response = client.chat.completions.create(
+                    messages=messages, model=model, stream=False  # type: ignore
+                )
+
+            # Handle response based on API type
+            if is_responses_only:
+                # Debug: Log the raw output structure
+                if self.verbose:
+                    Printer.verbose_logger(
+                        self.verbose,
+                        Printer.print_light_grey_message,
+                        f"Raw output type: {type(response.output)}, content: {response.output}"
+                    )
+                
+                # Handle Responses API response - extract text from output list
+                output_text = self._extract_text_from_responses_output(response.output)  # type: ignore
+                
+                # Debug: Log extracted text
+                if self.verbose:
+                    Printer.verbose_logger(
+                        self.verbose,
+                        Printer.print_light_grey_message,
+                        f"Extracted text: {output_text[:100]}..."
+                    )
+                
+                clean_answer = self._clean_ask_response(output_text)
+                # Extract citations from Responses API format
+                citations = self._extract_citations_from_responses_output(response.output)  # type: ignore
+            else:
+                # Type narrowing for chat completions response
+                from openai.types.chat import ChatCompletion
+
+                if isinstance(response, ChatCompletion):
+                    clean_answer = self._clean_ask_response(
+                        response.choices[0].message.content or ""
+                    )
+                    citations = self._extract_citations_from_response(response.model_dump())  # type: ignore
+                else:
+                    clean_answer = "Error: Unexpected response type"
+                    citations = []
+            
             citations = citations or []
             # Only try to get more citations if we're not already in citation retrieval mode
             if len(citations) == 0 and not for_citations:
@@ -1303,6 +1532,13 @@ class AuxKnow:
             str: The cleaned response.
         """
         try:
+            # Handle case where answer is not a string (e.g., from Responses API)
+            if not isinstance(answer, str):
+                if hasattr(answer, '__str__'):
+                    answer = str(answer)
+                else:
+                    return "Error: Invalid response format"
+            
             if not answer or answer.strip() == "":
                 return answer
 
@@ -1319,7 +1555,7 @@ class AuxKnow:
             return clean_answer
         except Exception as e:
             Printer.print_red_message(Constants.ERROR_CLEAN_ANSWER(e))
-            return answer
+            return str(answer) if answer else ""
 
     @log_performance(enabled=lambda self: self.config.performance_logging_enabled)
     def ask_stream(
@@ -1378,17 +1614,46 @@ class AuxKnow:
                 preparation_response.question,
             )
 
-            if not self.client:
+            # Get the appropriate client based on the model
+            try:
+                client, provider = ProviderFactory.get_client_for_model(
+                    model, self.llm, self.client
+                )
+                
+                # Check if this is a Responses-only model
+                is_responses_only = (provider == AIProvider.OPENAI and ProviderFactory.is_responses_only_model(model))
+                
+                # Log API call details
+                api_type = "RESPONSES_STREAMING" if is_responses_only else "STREAMING"
+                Printer.verbose_logger(
+                    self.verbose,
+                    Printer.print_cyan_message,
+                    f"🔌 API Call: Provider={provider.value.upper()}, Model={model}, Type={api_type}"
+                )
+                
+            except ValueError as e:
                 yield AuxKnowAnswer(
                     id=answer_id,
-                    answer="Client not initialized",
+                    answer=str(e),
                     citations=[],
                     is_final=True,
                 )
                 return
-            response_stream = self.client.chat.completions.create(
-                messages=messages, model=model, stream=True  # type: ignore
-            )
+
+            # Use appropriate API based on model type
+            if is_responses_only:
+                # Convert messages to input string for Responses API
+                input_text = self._convert_messages_to_input(messages)
+                response_stream = client.responses.create(
+                    model=model,
+                    input=input_text,
+                    stream=True,
+                    tools=[{"type": "web_search_preview"}]  # Required for deep research models
+                )
+            else:
+                response_stream = client.chat.completions.create(
+                    messages=messages, model=model, stream=True  # type: ignore
+                )
 
             for chunk in StreamProcessor.process_stream(
                 response_stream,  # type: ignore

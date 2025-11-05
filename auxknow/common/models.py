@@ -55,11 +55,17 @@ class AuxKnowSearchItem(BaseModel):
         title (str): The title of the search result.
         content (str): The content of the search result.
         url (str): The URL of the search result.
+        date (str | None): Publication date of the content (ISO format).
+        last_updated (str | None): Last updated date of the content (ISO format).
+        snippet_length (int | None): Length of the extracted snippet in tokens.
     """
 
     title: str
     content: str
     url: str
+    date: str | None = None
+    last_updated: str | None = None
+    snippet_length: int | None = None
 
 
 class AuxKnowSearchResults(BaseModel):

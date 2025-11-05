@@ -85,6 +85,85 @@ print(response.answer)
 print(response.citations)
 ```
 
+### Custom Model Configuration
+
+AuxKnow supports custom model configuration through JSON configuration files, allowing you to override default model selections for different tasks. This feature provides flexibility to tailor model selection to your specific needs.
+
+#### Configuration File Format
+
+Create a JSON configuration file (e.g., `auxknow_config.json`) with the following structure:
+
+```json
+{
+  "custom_models": {
+    "standard": "sonar-pro",
+    "reasoning": "sonar-reasoning-pro", 
+    "deep_research": "sonar-deep-research",
+    "prompt_augmentation": "gpt-4o",
+    "fast_mode": "sonar"
+  },
+  "auto_model_routing": true,
+  "auto_query_restructuring": false,
+  "answer_length_in_paragraphs": 3,
+  "lines_per_paragraph": 5,
+  "auto_prompt_augment": true,
+  "enable_unibiased_reasoning": true,
+  "fast_mode": false,
+  "performance_logging_enabled": false,
+  "enable_reasoning": false
+}
+```
+
+#### Supported Models
+
+**OpenAI Models:**
+- `gpt-4o-mini`, `gpt-4o`, `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`, `o4-mini-deep-research`
+
+**Perplexity Models:**
+- `sonar`, `sonar-pro`, `sonar-reasoning`, `sonar-reasoning-pro`, `sonar-deep-research`
+
+#### Using Custom Configuration
+
+Load your custom configuration when initializing AuxKnow:
+
+```python
+from auxknow import AuxKnow
+
+# Initialize with custom configuration file
+engine = AuxKnow(config_file_path="auxknow_config.json")
+
+# Ask a question - will use your custom model configuration
+response = engine.ask("What are the benefits of renewable energy?")
+```
+
+#### Programmatic Configuration
+
+You can also update configuration programmatically:
+
+```python
+from auxknow import AuxKnow
+
+# Initialize with defaults
+engine = AuxKnow()
+
+# Update configuration after initialization
+engine.set_config({
+    "custom_models": {
+        "standard": "gpt-4o-mini",  # Use OpenAI model for standard tasks
+        "reasoning": "sonar-reasoning"
+    },
+    "auto_model_routing": False,
+    "fast_mode": True
+})
+```
+
+#### Configuration Priority
+
+When using both a configuration file and constructor parameters:
+1. Configuration file settings are loaded first
+2. Explicit constructor parameters override config file settings
+3. Default values are used for any unspecified settings
+
 ---
 
 ## Use Cases
@@ -102,6 +181,28 @@ AuxKnow is designed to cater to a wide range of scenarios, including:
 ---
 
 # Changelog
+
+## 🚀 v0.0.22 - Smarter Search, Zero Hassle
+
+- ⚡ **Better results, faster**: Use Perplexity for rich, high‑quality search with automatic fallback to DuckDuckGo when needed.
+- 🧭 **No setup surprises**: `AuxKnowSearch` reads your settings directly from `auxknow_config.json` (provider, defaults, fallback) — no extra code required.
+- 🧰 **Do more with search**: Filter by domain, run multi‑query batches, and control content extraction (Perplexity).
+- 🧹 **Clear, helpful errors**: Actionable messages (e.g., how to install missing packages) reduce friction.
+Notes:
+- ✅ No breaking changes. Existing code keeps working.
+
+---
+
+## 🚀 v0.0.21 - Custom Model Configuration
+
+- 🎯 **Configurable Model Selection**: Users can now customize which models are used for different tasks through JSON configuration files.
+- 🛠 **Model Override System**: Override default model selections with custom mappings for standard, reasoning, deep research, prompt augmentation, and fast mode tasks.
+- 📁 **Configuration File Support**: Load settings from external JSON files with validation and error handling.
+- 🔧 **Programmatic Configuration**: Update model configurations dynamically through the `set_config` method.
+- ✅ **Model Validation**: Automatic validation of custom model configurations against supported OpenAI and Perplexity models.
+- 📚 **Comprehensive Documentation**: Added detailed usage examples and configuration guides.
+
+---
 
 ## 🚀 v0.0.20 - Fix ping test bug.
 

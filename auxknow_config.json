@@ -1,0 +1,25 @@
+{
+  "custom_models": {
+    "standard": "sonar",
+    "perplexity": "sonar-pro", 
+    "reasoning": "sonar-reasoning",
+    "deep_research": "o4-mini-deep-research",
+    "prompt_augmentation": "gpt-4o",
+    "fast_mode": "gpt-4o-mini"
+  },
+  "auto_model_routing": false,
+  "auto_query_restructuring": false,
+  "answer_length_in_paragraphs": 1,
+  "lines_per_paragraph": 6,
+  "auto_prompt_augment": true,
+  "enable_unibiased_reasoning": true,
+  "fast_mode": true,
+  "performance_logging_enabled": false,
+  "enable_reasoning": false,
+  "search_provider": "perplexity",
+  "search_config": {
+    "max_results": 10,
+    "max_tokens_per_page": 1024,
+    "enable_fallback": true
+  }
+} 
